@@ -1,97 +1,106 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chambua Clinic Feedback</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chambua Clinic Feedback Form</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
   <style>
     body {
+      background-color: #f5f9fc;
       font-family: Arial, sans-serif;
-      margin: 40px;
     }
-    h1 {
-      color: #00796B;
+    .container {
+      max-width: 600px;
+      margin-top: 50px;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    label, input, textarea {
-      display: block;
-      margin-top: 10px;
-      width: 100%;
-      max-width: 400px;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #00796B;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    #confirmation {
-      margin-top: 20px;
-      color: green;
+    h2 {
+      text-align: center;
+      color: #0d6efd;
+      margin-bottom: 30px;
     }
   </style>
 </head>
 <body>
-  <h1>Chambua Clinic Feedback</h1>
-  <form id="feedbackForm">
-    <label for="rating">How would you rate our services? (1 to 5)</label>
-    <input type="number" id="rating" name="rating" min="1" max="5" required />
+  <div class="container">
+    <h2>Chambua Clinic Feedback Form</h2>
+    <form id="feedbackForm">
+      <div class="mb-3">
+        <label class="form-label">How would you rate the quality of care you received?</label>
+        <select class="form-select" name="careQuality" required>
+          <option value="">Select a rating</option>
+          <option value="1">1 - Poor</option>
+          <option value="2">2 - Fair</option>
+          <option value="3">3 - Good</option>
+          <option value="4">4 - Very Good</option>
+          <option value="5">5 - Excellent</option>
+        </select>
+      </div>
 
-    <label for="experience">Briefly describe your experience:</label>
-    <textarea id="experience" name="experience" required></textarea>
+      <div class="mb-3">
+        <label class="form-label">How long did you wait before being attended to?</label>
+        <select class="form-select" name="waitTime" required>
+          <option value="">Select time</option>
+          <option value="Less than 10 mins">Less than 10 minutes</option>
+          <option value="10-30 mins">10-30 minutes</option>
+          <option value="30+ mins">Over 30 minutes</option>
+        </select>
+      </div>
 
-    <label for="contact">Would you like us to follow up? (Optional contact info)</label>
-    <input type="text" id="contact" name="contact" />
+      <div class="mb-3">
+        <label class="form-label">How would you rate the friendliness of our staff?</label>
+        <select class="form-select" name="staffFriendliness" required>
+          <option value="">Select rating</option>
+          <option value="1">1 - Poor</option>
+          <option value="2">2 - Fair</option>
+          <option value="3">3 - Good</option>
+          <option value="4">4 - Very Good</option>
+          <option value="5">5 - Excellent</option>
+        </select>
+      </div>
 
-    <button type="submit">Submit Feedback</button>
-  </form>
+      <div class="mb-3">
+        <label class="form-label">Would you recommend our clinic to others?</label>
+        <select class="form-select" name="recommend" required>
+          <option value="">Choose one</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
 
-  <div id="confirmation"></div>
+      <div class="mb-3">
+        <label class="form-label">Any additional comments or suggestions?</label>
+        <textarea class="form-control" name="comments" rows="3" placeholder="Your feedback..."></textarea>
+      </div>
 
-  <!-- Firebase SDKs -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+      <div class="mb-3">
+        <label class="form-label">
+          Provide your phone number or email if you wish to be contacted (optional):
+        </label>
+        <input
+          type="text"
+          class="form-control"
+          name="contactInfo"
+          placeholder="e.g. 0712 345678 or name@example.com"
+        />
+      </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
-      authDomain: "chambua-feedback-system.firebaseapp.com",
-      projectId: "chambua-feedback-system",
-      storageBucket: "chambua-feedback-system.firebasestorage.app",
-      messagingSenderId: "440404138384",
-      appId: "1:440404138384:web:8f971a343eb6e467e23b15",
-      measurementId: "G-XCX96KNJKC"
-    };
+      <button type="submit" class="btn btn-primary w-100">Submit Feedback</button>
+    </form>
+  </div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const form = document.getElementById('feedbackForm');
-    const confirmation = document.getElementById('confirmation');
-
-    form.addEventListener('submit', async (e) => {
+  <script>
+    document.getElementById('feedbackForm').addEventListener('submit', function (e) {
       e.preventDefault();
-
-      const rating = form.rating.value;
-      const experience = form.experience.value;
-      const contact = form.contact.value;
-
-      try {
-        await addDoc(collection(db, "feedback"), {
-          rating,
-          experience,
-          contact,
-          timestamp: serverTimestamp()
-        });
-
-        confirmation.textContent = "Thank you for your feedback!";
-        form.reset();
-      } catch (error) {
-        confirmation.textContent = "Error submitting feedback. Please try again later.";
-        console.error("Error adding document: ", error);
-      }
+      alert('Thank you! Your feedback has been submitted.');
+      this.reset();
     });
   </script>
 </body>
