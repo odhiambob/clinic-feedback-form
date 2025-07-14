@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chambua Clinic Feedback</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background-color: #f4f7f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2e6da4;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #2e6da4;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #204d74;
+    }
+    .success-message {
+      text-align: center;
+      color: green;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chambua Clinic Feedback Form</h1>
+  <form id="feedbackForm">
+    <label for="care">How would you rate the quality of care you received?</label>
+    <select id="care" required>
+      <option value="">Select a rating</option>
+      <option value="Excellent">Excellent</option>
+      <option value="Good">Good</option>
+      <option value="Average">Average</option>
+      <option value="Poor">Poor</option>
+    </select>
+
+    <label for="wait">How long did you wait before being attended to?</label>
+    <select id="wait" required>
+      <option value="">Select time</option>
+      <option value="Less than 15 mins">Less than 15 mins</option>
+      <option value="15-30 mins">15-30 mins</option>
+      <option value="30-60 mins">30-60 mins</option>
+      <option value=">1 hour">Over 1 hour</option>
+    </select>
+
+    <label for="staff">How would you rate the friendliness of our staff?</label>
+    <select id="staff" required>
+      <option value="">Select rating</option>
+      <option value="Very Friendly">Very Friendly</option>
+      <option value="Friendly">Friendly</option>
+      <option value="Neutral">Neutral</option>
+      <option value="Unfriendly">Unfriendly</option>
+    </select>
+
+    <label for="recommend">Would you recommend our clinic to others?</label>
+    <select id="recommend" required>
+      <option value="">Choose one</option>
+      <option value="Yes">Yes</option>
+      <option value="Maybe">Maybe</option>
+      <option value="No">No</option>
+    </select>
+
+    <label for="comments">Any additional comments or suggestions?</label>
+    <textarea id="comments" rows="4" placeholder="Your feedback..."></textarea>
+
+    <label for="contact">Provide your phone number or email if you wish to be contacted (optional):</label>
+    <input type="text" id="contact" placeholder="e.g. 0712 345678 or name@example.com" />
+
+    <button type="submit">Submit Feedback</button>
+    <div class="success-message" id="successMsg" style="display: none;">Thank you! Your feedback has been submitted.</div>
+  </form>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
+      authDomain: "chambua-feedback-system.firebaseapp.com",
+      projectId: "chambua-feedback-system",
+      storageBucket: "chambua-feedback-system.firebasestorage.app",
+      messagingSenderId: "440404138384",
+      appId: "1:440404138384:web:8f971a343eb6e467e23b15",
+      measurementId: "G-XCX96KNJKC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const care = document.getElementById("care").value;
+      const wait = document.getElementById("wait").value;
+      const staff = document.getElementById("staff").value;
+      const recommend = document.getElementById("recommend").value;
+      const comments = document.getElementById("comments").value;
+      const contact = document.getElementById("contact").value;
+
+      try {
+        await addDoc(collection(db, "clinic_feedback"), {
+          care,
+          wait,
+          staff,
+          recommend,
+          comments,
+          contact,
+          timestamp: new Date()
+        });
+        document.getElementById("successMsg").style.display = "block";
+        document.getElementById("feedbackForm").reset();
+      } catch (err) {
+        alert("Error submitting feedback: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
