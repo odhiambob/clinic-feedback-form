@@ -10,24 +10,47 @@
   <div class="container mt-5">
     <h2 class="mb-3 text-center text-primary">📋 Clinic Feedback Dashboard</h2>
 
-    <div class="mb-4 d-flex justify-content-between flex-wrap">
-      <div class="me-3">
-        <strong>Total Submissions:</strong> <span id="totalCount">0</span>
-      </div>
-      <div class="me-3">
-        <strong>Would Recommend:</strong> <span id="recommendCount">0</span>
-      </div>
-      <div class="me-3">
+    <div class="row mb-4">
+      <div class="col-md-3 mb-2">
+        <strong>Total Submissions:</strong> <span id="totalCount">0</span><br>
+        <strong>Would Recommend:</strong> <span id="recommendCount">0</span><br>
         <strong>Excellent Care:</strong> <span id="excellentCount">0</span>
       </div>
-      <div class="me-3">
-        <label for="filterRating" class="form-label mb-0"><strong>Filter by Care Quality:</strong></label>
+      <div class="col-md-2 mb-2">
+        <label for="filterRating" class="form-label mb-0"><strong>Care Quality:</strong></label>
         <select id="filterRating" class="form-select">
           <option value="All">All</option>
-          <option value="Excellent">Excellent</option>
-          <option value="Good">Good</option>
-          <option value="Average">Average</option>
-          <option value="Poor">Poor</option>
+          <option>Excellent</option>
+          <option>Good</option>
+          <option>Average</option>
+          <option>Poor</option>
+        </select>
+      </div>
+      <div class="col-md-2 mb-2">
+        <label for="filterWaitTime" class="form-label mb-0"><strong>Wait Time:</strong></label>
+        <select id="filterWaitTime" class="form-select">
+          <option value="All">All</option>
+          <option>Less than 15 minutes</option>
+          <option>15–30 minutes</option>
+          <option>More than 30 minutes</option>
+        </select>
+      </div>
+      <div class="col-md-2 mb-2">
+        <label for="filterFriendliness" class="form-label mb-0"><strong>Staff Friendliness:</strong></label>
+        <select id="filterFriendliness" class="form-select">
+          <option value="All">All</option>
+          <option>Excellent</option>
+          <option>Good</option>
+          <option>Average</option>
+          <option>Poor</option>
+        </select>
+      </div>
+      <div class="col-md-2 mb-2">
+        <label for="filterRecommend" class="form-label mb-0"><strong>Recommend?</strong></label>
+        <select id="filterRecommend" class="form-select">
+          <option value="All">All</option>
+          <option>Yes</option>
+          <option>No</option>
         </select>
       </div>
     </div>
@@ -70,7 +93,12 @@
     async function loadFeedback() {
       const querySnapshot = await getDocs(collection(db, "clinic_feedback"));
       const tableBody = document.querySelector("#feedbackTable tbody");
-      const filter = document.getElementById("filterRating").value;
+
+      // Get filter values
+      const filterRating = document.getElementById("filterRating").value;
+      const filterWaitTime = document.getElementById("filterWaitTime").value;
+      const filterFriendliness = document.getElementById("filterFriendliness").value;
+      const filterRecommend = document.getElementById("filterRecommend").value;
 
       let total = 0;
       let recommendYes = 0;
@@ -81,8 +109,13 @@
       querySnapshot.forEach((doc) => {
         const data = doc.data();
 
-        // Filter logic
-        if (filter !== "All" && data.careQuality !== filter) return;
+        // Apply filters
+        if (
+          (filterRating !== "All" && data.careQuality !== filterRating) ||
+          (filterWaitTime !== "All" && data.waitTime !== filterWaitTime) ||
+          (filterFriendliness !== "All" && data.staffFriendliness !== filterFriendliness) ||
+          (filterRecommend !== "All" && data.recommendClinic !== filterRecommend)
+        ) return;
 
         total++;
         if (data.recommendClinic === "Yes") recommendYes++;
@@ -106,8 +139,13 @@
       document.getElementById("excellentCount").textContent = excellentCare;
     }
 
+    // Attach change listeners to all filters
     document.getElementById("filterRating").addEventListener("change", loadFeedback);
+    document.getElementById("filterWaitTime").addEventListener("change", loadFeedback);
+    document.getElementById("filterFriendliness").addEventListener("change", loadFeedback);
+    document.getElementById("filterRecommend").addEventListener("change", loadFeedback);
 
+    // Initial load
     loadFeedback();
   </script>
 </body>
