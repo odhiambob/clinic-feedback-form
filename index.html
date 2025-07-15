@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,16 +7,9 @@
   <title>Chambua Clinic Feedback</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <style>
-    body {
-      background-color: #f5f7fa;
-    }
-    .container {
-      max-width: 600px;
-      margin-top: 50px;
-    }
-    .form-label {
-      font-weight: 500;
-    }
+    body { background-color: #f5f7fa; }
+    .container { max-width: 600px; margin-top: 50px; }
+    .form-label { font-weight: 500; }
   </style>
 </head>
 <body>
@@ -23,7 +17,7 @@
     <h2 class="text-center text-primary mb-4">Chambua Clinic Feedback Form</h2>
     <form id="feedbackForm">
       <div class="mb-3">
-        <label for="careQuality" class="form-label">How would you rate the quality of care you received?</label>
+        <label class="form-label">How would you rate the quality of care you received?</label>
         <select class="form-select" id="careQuality" required>
           <option value="">Select a rating</option>
           <option>Excellent</option>
@@ -33,7 +27,7 @@
         </select>
       </div>
       <div class="mb-3">
-        <label for="waitTime" class="form-label">How long did you wait before being attended to?</label>
+        <label class="form-label">How long did you wait before being attended to?</label>
         <select class="form-select" id="waitTime" required>
           <option value="">Select time</option>
           <option>Less than 15 minutes</option>
@@ -42,7 +36,7 @@
         </select>
       </div>
       <div class="mb-3">
-        <label for="staffFriendliness" class="form-label">How would you rate the friendliness of our staff?</label>
+        <label class="form-label">How would you rate the friendliness of our staff?</label>
         <select class="form-select" id="staffFriendliness" required>
           <option value="">Select rating</option>
           <option>Excellent</option>
@@ -52,7 +46,7 @@
         </select>
       </div>
       <div class="mb-3">
-        <label for="recommendClinic" class="form-label">Would you recommend our clinic to others?</label>
+        <label class="form-label">Would you recommend our clinic to others?</label>
         <select class="form-select" id="recommendClinic" required>
           <option value="">Choose one</option>
           <option>Yes</option>
@@ -60,12 +54,12 @@
         </select>
       </div>
       <div class="mb-3">
-        <label for="additionalComments" class="form-label">Any additional comments or suggestions?</label>
+        <label class="form-label">Any additional comments or suggestions?</label>
         <textarea class="form-control" id="additionalComments" rows="3"></textarea>
       </div>
       <div class="mb-3">
-        <label for="contactInfo" class="form-label">Provide your phone number or email if you wish to be contacted (optional):</label>
-        <input type="text" class="form-control" id="contactInfo" placeholder="e.g. 0712 345678 or name@example.com" />
+        <label class="form-label">Provide your phone number or email (optional):</label>
+        <input type="text" class="form-control" id="contactInfo" placeholder="0712 345678 or name@example.com" />
       </div>
       <button type="submit" class="btn btn-primary">Submit Feedback</button>
     </form>
@@ -81,8 +75,7 @@
       projectId: "chambua-feedback-system",
       storageBucket: "chambua-feedback-system.appspot.com",
       messagingSenderId: "440404138384",
-      appId: "1:440404138384:web:8f971a343eb6e467e23b15",
-      measurementId: "G-XCX96KNJKC"
+      appId: "1:440404138384:web:8f971a343eb6e467e23b15"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -98,7 +91,7 @@
         recommendClinic: document.getElementById("recommendClinic").value,
         additionalComments: document.getElementById("additionalComments").value,
         contactInfo: document.getElementById("contactInfo").value,
-        submittedAt: new Date().toISOString()
+        submittedAt: new Date().toISOString()  // Save as ISO string
       };
 
       try {

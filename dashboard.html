@@ -1,190 +1,106 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clinic Feedback Dashboard</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <title>Chambua Dashboard with Tabs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      background-color: #f5f7fa;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    .dashboard-title {
-      font-size: 2rem;
-      font-weight: 600;
-    }
-    .summary-card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-    .summary-card h5 {
-      font-size: 1rem;
-      color: #6c757d;
-    }
-    .summary-card .value {
-      font-size: 1.6rem;
-      font-weight: bold;
-    }
-    .chart-container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      margin-bottom: 30px;
-    }
-    .comments-section {
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 12px;
-      max-height: 400px;
-      overflow-y: auto;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .comment-card {
-      border-bottom: 1px solid #e9ecef;
-      padding: 10px 0;
-    }
-    .comment-meta {
-      font-size: 0.9rem;
-      color: #6c757d;
-    }
-    .comment-text {
-      font-size: 1rem;
-    }
-    .toggle-table {
-      cursor: pointer;
-      font-size: 0.95rem;
-      margin-top: 20px;
-      color: #0d6efd;
-      text-decoration: underline;
-    }
-  </style>
 </head>
-<body>
-  <div class="container my-5">
-    <div class="text-center mb-4">
-      <h2 class="dashboard-title text-primary">📊 Clinic Feedback Dashboard</h2>
-      <p class="text-muted">Track insights, sentiment, and experience in real-time</p>
-    </div>
-
-    <!-- Summary KPIs -->
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <div class="summary-card">
-          <h5>Total Submissions</h5>
-          <div id="totalCount" class="value text-primary">0</div>
+<body class="hold-transition layout-top-nav">
+<div class="wrapper">
+  <div class="content-wrapper pt-4 px-3">
+    <div class="card card-outline card-primary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">📊 Chambua Clinic Feedback Dashboard</h3>
+        <input type="date" id="datePicker" class="form-control w-auto">
+      </div>
+      <div class="card-body">
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="overview-tab" data-toggle="tab" href="#overview" role="tab">Overview</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="trends-tab" data-toggle="tab" href="#trends" role="tab">Trends</a>
+          </li>
+        </ul>
+        <div class="tab-content pt-3" id="dashboardTabContent">
+          <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div id="overviewContent">Loading...</div>
+          </div>
+          <div class="tab-pane fade" id="trends" role="tabpanel">
+            <canvas id="trendChart"></canvas>
+          </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="summary-card">
-          <h5>Would Recommend</h5>
-          <div id="recommendCount" class="value text-success">0</div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="summary-card">
-          <h5>Excellent Care</h5>
-          <div id="excellentCount" class="value text-warning">0</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Charts -->
-    <div class="row">
-      <div class="col-md-6">
-        <div class="chart-container">
-          <h6 class="text-center mb-3">Care Quality Distribution</h6>
-          <canvas id="careChart"></canvas>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="chart-container">
-          <h6 class="text-center mb-3">Wait Time Responses</h6>
-          <canvas id="waitChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-12">
-        <div class="chart-container">
-          <h6 class="text-center mb-3">Staff Friendliness</h6>
-          <canvas id="friendChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Comments -->
-    <div class="comments-section mt-4">
-      <h5 class="mb-3">📥 Comments & Suggestions</h5>
-      <div id="commentList"></div>
-    </div>
-
-    <!-- Table toggle -->
-    <div class="text-end">
-      <span class="toggle-table" onclick="toggleTable()">Show/hide full data table</span>
-    </div>
-
-    <!-- Full Table -->
-    <div id="tableSection" class="table-responsive mt-3" style="display:none;">
-      <table class="table table-bordered table-striped align-middle">
-        <thead class="table-primary">
-          <tr>
-            <th>Care Quality</th>
-            <th>Wait Time</th>
-            <th>Staff Friendliness</th>
-            <th>Recommend?</th>
-            <th>Comments</th>
-            <th>Contact Info</th>
-            <th>Submitted At</th>
-          </tr>
-        </thead>
-        <tbody id="feedbackTableBody"></tbody>
-      </table>
     </div>
   </div>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
-      authDomain: "chambua-feedback-system.firebaseapp.com",
-      projectId: "chambua-feedback-system",
-      storageBucket: "chambua-feedback-system.appspot.com",
-      messagingSenderId: "440404138384",
-      appId: "1:440404138384:web:8f971a343eb6e467e23b15",
-      measurementId: "G-XCX96KNJKC"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
+    authDomain: "chambua-feedback-system.firebaseapp.com",
+    projectId: "chambua-feedback-system",
+    storageBucket: "chambua-feedback-system.appspot.com",
+    messagingSenderId: "440404138384",
+    appId: "1:440404138384:web:8f971a343eb6e467e23b15"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const careChart = new Chart(document.getElementById("careChart"), {
-      type: "pie",
-      data: {
-        labels: ["Excellent", "Good", "Average", "Poor"],
-        datasets: [{
-          data: [0, 0, 0, 0],
-          backgroundColor: ["#198754", "#0d6efd", "#ffc107", "#dc3545"]
-        }]
+  function formatDate(d) {
+    return d.toISOString().split("T")[0];
+  }
+
+  async function loadOverview(selectedDate) {
+    const snap = await getDocs(collection(db, "clinic_feedback"));
+    const overviewDiv = document.getElementById("overviewContent");
+    let count = 0;
+    let comments = "";
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (selectedDate && formatDate(new Date(d.submittedAt)) !== selectedDate) return;
+      count++;
+      if (d.additionalComments) {
+        comments += `<div class="border-bottom mb-2 pb-2"><strong>${d.careQuality}</strong> • ${d.staffFriendliness} • ${d.recommendClinic}<br>${d.additionalComments}</div>`;
       }
     });
+    overviewDiv.innerHTML = `
+      <p><strong>Total Submissions:</strong> ${count}</p>
+      <h6>Comments:</h6>
+      ${comments || "<p class='text-muted'>No comments for selected date.</p>"}
+    `;
+  }
 
-    const waitChart = new Chart(document.getElementById("waitChart"), {
-      type: "bar",
+  async function loadTrends(selectedDate) {
+    const ctx = document.getElementById("trendChart").getContext("2d");
+    const snap = await getDocs(collection(db, "clinic_feedback"));
+    const counts = {};
+    snap.forEach(doc => {
+      const d = doc.data();
+      const day = formatDate(new Date(d.submittedAt));
+      if (!counts[day]) counts[day] = 0;
+      counts[day]++;
+    });
+
+    const sortedDays = Object.keys(counts).sort();
+    const trendChart = new Chart(ctx, {
+      type: "line",
       data: {
-        labels: ["< 15 min", "15–30 min", "> 30 min"],
+        labels: sortedDays,
         datasets: [{
-          label: "Responses",
-          data: [0, 0, 0],
-          backgroundColor: "#0dcaf0"
+          label: "Feedback per Day",
+          data: sortedDays.map(day => counts[day]),
+          borderColor: "#007bff",
+          fill: false
         }]
       },
       options: {
@@ -193,97 +109,15 @@
         }
       }
     });
+  }
 
-    const friendChart = new Chart(document.getElementById("friendChart"), {
-      type: "bar",
-      data: {
-        labels: ["Excellent", "Good", "Average", "Poor"],
-        datasets: [{
-          label: "Staff Ratings",
-          data: [0, 0, 0, 0],
-          backgroundColor: "#6f42c1"
-        }]
-      },
-      options: {
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    });
+  document.getElementById("datePicker").addEventListener("change", (e) => {
+    const date = e.target.value;
+    loadOverview(date);
+  });
 
-    function toggleTable() {
-      const section = document.getElementById("tableSection");
-      section.style.display = section.style.display === "none" ? "block" : "none";
-    }
-
-    async function loadData() {
-      const querySnapshot = await getDocs(collection(db, "clinic_feedback"));
-      const tableBody = document.getElementById("feedbackTableBody");
-      const commentList = document.getElementById("commentList");
-
-      let total = 0, recommend = 0, excellent = 0;
-      let careData = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
-      let waitData = {
-        "Less than 15 minutes": 0,
-        "15–30 minutes": 0,
-        "More than 30 minutes": 0
-      };
-      let friendData = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
-
-      tableBody.innerHTML = "";
-      commentList.innerHTML = "";
-
-      querySnapshot.forEach(doc => {
-        const d = doc.data();
-        total++;
-        if (d.recommendClinic === "Yes") recommend++;
-        if (d.careQuality === "Excellent") excellent++;
-
-        careData[d.careQuality] = (careData[d.careQuality] || 0) + 1;
-        waitData[d.waitTime] = (waitData[d.waitTime] || 0) + 1;
-        friendData[d.staffFriendliness] = (friendData[d.staffFriendliness] || 0) + 1;
-
-        // Table row
-        const row = `
-          <tr>
-            <td>${d.careQuality}</td>
-            <td>${d.waitTime}</td>
-            <td>${d.staffFriendliness}</td>
-            <td>${d.recommendClinic}</td>
-            <td>${d.additionalComments || ""}</td>
-            <td>${d.contactInfo || ""}</td>
-            <td>${new Date(d.submittedAt).toLocaleString()}</td>
-          </tr>`;
-        tableBody.innerHTML += row;
-
-        // Comment
-        if (d.additionalComments && d.additionalComments.trim() !== "") {
-          commentList.innerHTML += `
-            <div class="comment-card">
-              <div class="comment-meta">
-                ${d.careQuality} care • ${d.staffFriendliness} staff • ${d.recommendClinic} • ${new Date(d.submittedAt).toLocaleString()}
-              </div>
-              <div class="comment-text">${d.additionalComments}</div>
-            </div>
-          `;
-        }
-      });
-
-      // Update KPIs
-      document.getElementById("totalCount").textContent = total;
-      document.getElementById("recommendCount").textContent = recommend;
-      document.getElementById("excellentCount").textContent = excellent;
-
-      // Update charts
-      careChart.data.datasets[0].data = Object.values(careData);
-      waitChart.data.datasets[0].data = Object.values(waitData);
-      friendChart.data.datasets[0].data = Object.values(friendData);
-      careChart.update();
-      waitChart.update();
-      friendChart.update();
-    }
-
-    loadData();
-  </script>
+  loadOverview(); // initial load
+  loadTrends();   // initial trend chart
+</script>
 </body>
 </html>
