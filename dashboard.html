@@ -8,7 +8,30 @@
 </head>
 <body class="bg-light">
   <div class="container mt-5">
-    <h2 class="mb-4 text-center text-primary">📋 Clinic Feedback Dashboard</h2>
+    <h2 class="mb-3 text-center text-primary">📋 Clinic Feedback Dashboard</h2>
+
+    <div class="mb-4 d-flex justify-content-between flex-wrap">
+      <div class="me-3">
+        <strong>Total Submissions:</strong> <span id="totalCount">0</span>
+      </div>
+      <div class="me-3">
+        <strong>Would Recommend:</strong> <span id="recommendCount">0</span>
+      </div>
+      <div class="me-3">
+        <strong>Excellent Care:</strong> <span id="excellentCount">0</span>
+      </div>
+      <div class="me-3">
+        <label for="filterRating" class="form-label mb-0"><strong>Filter by Care Quality:</strong></label>
+        <select id="filterRating" class="form-select">
+          <option value="All">All</option>
+          <option value="Excellent">Excellent</option>
+          <option value="Good">Good</option>
+          <option value="Average">Average</option>
+          <option value="Poor">Poor</option>
+        </select>
+      </div>
+    </div>
+
     <table class="table table-bordered table-striped" id="feedbackTable">
       <thead class="table-primary">
         <tr>
@@ -22,7 +45,7 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Data will be inserted here -->
+        <!-- Feedback rows go here -->
       </tbody>
     </table>
   </div>
@@ -47,10 +70,24 @@
     async function loadFeedback() {
       const querySnapshot = await getDocs(collection(db, "clinic_feedback"));
       const tableBody = document.querySelector("#feedbackTable tbody");
+      const filter = document.getElementById("filterRating").value;
+
+      let total = 0;
+      let recommendYes = 0;
+      let excellentCare = 0;
+
       tableBody.innerHTML = "";
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+
+        // Filter logic
+        if (filter !== "All" && data.careQuality !== filter) return;
+
+        total++;
+        if (data.recommendClinic === "Yes") recommendYes++;
+        if (data.careQuality === "Excellent") excellentCare++;
+
         const row = `
           <tr>
             <td>${data.careQuality}</td>
@@ -63,7 +100,13 @@
           </tr>`;
         tableBody.innerHTML += row;
       });
+
+      document.getElementById("totalCount").textContent = total;
+      document.getElementById("recommendCount").textContent = recommendYes;
+      document.getElementById("excellentCount").textContent = excellentCare;
     }
+
+    document.getElementById("filterRating").addEventListener("change", loadFeedback);
 
     loadFeedback();
   </script>
