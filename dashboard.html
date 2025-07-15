@@ -5,66 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Clinic Feedback Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <style>
+    .col-control {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .hidden-col {
+      display: none;
+    }
+  </style>
 </head>
 <body class="bg-light">
   <div class="container mt-5">
     <h2 class="mb-3 text-center text-primary">📋 Clinic Feedback Dashboard</h2>
 
-    <div class="row mb-4">
-      <div class="col-md-3 mb-2">
-        <strong>Total Submissions:</strong> <span id="totalCount">0</span><br>
-        <strong>Would Recommend:</strong> <span id="recommendCount">0</span><br>
-        <strong>Excellent Care:</strong> <span id="excellentCount">0</span>
-      </div>
-      <div class="col-md-2 mb-2">
-        <label for="filterRating" class="form-label mb-0"><strong>Care Quality:</strong></label>
-        <select id="filterRating" class="form-select">
-          <option value="All">All</option>
-          <option>Excellent</option>
-          <option>Good</option>
-          <option>Average</option>
-          <option>Poor</option>
-        </select>
-      </div>
-      <div class="col-md-2 mb-2">
-        <label for="filterWaitTime" class="form-label mb-0"><strong>Wait Time:</strong></label>
-        <select id="filterWaitTime" class="form-select">
-          <option value="All">All</option>
-          <option>Less than 15 minutes</option>
-          <option>15–30 minutes</option>
-          <option>More than 30 minutes</option>
-        </select>
-      </div>
-      <div class="col-md-2 mb-2">
-        <label for="filterFriendliness" class="form-label mb-0"><strong>Staff Friendliness:</strong></label>
-        <select id="filterFriendliness" class="form-select">
-          <option value="All">All</option>
-          <option>Excellent</option>
-          <option>Good</option>
-          <option>Average</option>
-          <option>Poor</option>
-        </select>
-      </div>
-      <div class="col-md-2 mb-2">
-        <label for="filterRecommend" class="form-label mb-0"><strong>Recommend?</strong></label>
-        <select id="filterRecommend" class="form-select">
-          <option value="All">All</option>
-          <option>Yes</option>
-          <option>No</option>
-        </select>
+    <div class="mb-3">
+      <strong>Show Columns:</strong><br />
+      <div id="columnControls" class="mb-3">
+        <label class="col-control"><input type="checkbox" data-col="careQuality" checked /> Care Quality</label>
+        <label class="col-control"><input type="checkbox" data-col="waitTime" checked /> Wait Time</label>
+        <label class="col-control"><input type="checkbox" data-col="staffFriendliness" checked /> Staff Friendliness</label>
+        <label class="col-control"><input type="checkbox" data-col="recommendClinic" checked /> Recommend?</label>
+        <label class="col-control"><input type="checkbox" data-col="additionalComments" checked /> Comments</label>
+        <label class="col-control"><input type="checkbox" data-col="contactInfo" checked /> Contact Info</label>
+        <label class="col-control"><input type="checkbox" data-col="submittedAt" checked /> Submitted At</label>
       </div>
     </div>
 
     <table class="table table-bordered table-striped" id="feedbackTable">
       <thead class="table-primary">
         <tr>
-          <th>Care Quality</th>
-          <th>Wait Time</th>
-          <th>Staff Friendliness</th>
-          <th>Recommend?</th>
-          <th>Comments</th>
-          <th>Contact Info</th>
-          <th>Submitted At</th>
+          <th data-col="careQuality">Care Quality</th>
+          <th data-col="waitTime">Wait Time</th>
+          <th data-col="staffFriendliness">Staff Friendliness</th>
+          <th data-col="recommendClinic">Recommend?</th>
+          <th data-col="additionalComments">Comments</th>
+          <th data-col="contactInfo">Contact Info</th>
+          <th data-col="submittedAt">Submitted At</th>
         </tr>
       </thead>
       <tbody>
@@ -93,59 +70,43 @@
     async function loadFeedback() {
       const querySnapshot = await getDocs(collection(db, "clinic_feedback"));
       const tableBody = document.querySelector("#feedbackTable tbody");
-
-      // Get filter values
-      const filterRating = document.getElementById("filterRating").value;
-      const filterWaitTime = document.getElementById("filterWaitTime").value;
-      const filterFriendliness = document.getElementById("filterFriendliness").value;
-      const filterRecommend = document.getElementById("filterRecommend").value;
-
-      let total = 0;
-      let recommendYes = 0;
-      let excellentCare = 0;
-
       tableBody.innerHTML = "";
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+        const row = document.createElement("tr");
 
-        // Apply filters
-        if (
-          (filterRating !== "All" && data.careQuality !== filterRating) ||
-          (filterWaitTime !== "All" && data.waitTime !== filterWaitTime) ||
-          (filterFriendliness !== "All" && data.staffFriendliness !== filterFriendliness) ||
-          (filterRecommend !== "All" && data.recommendClinic !== filterRecommend)
-        ) return;
+        row.innerHTML = `
+          <td data-col="careQuality">${data.careQuality}</td>
+          <td data-col="waitTime">${data.waitTime}</td>
+          <td data-col="staffFriendliness">${data.staffFriendliness}</td>
+          <td data-col="recommendClinic">${data.recommendClinic}</td>
+          <td data-col="additionalComments">${data.additionalComments || ""}</td>
+          <td data-col="contactInfo">${data.contactInfo || ""}</td>
+          <td data-col="submittedAt">${new Date(data.submittedAt).toLocaleString()}</td>
+        `;
 
-        total++;
-        if (data.recommendClinic === "Yes") recommendYes++;
-        if (data.careQuality === "Excellent") excellentCare++;
-
-        const row = `
-          <tr>
-            <td>${data.careQuality}</td>
-            <td>${data.waitTime}</td>
-            <td>${data.staffFriendliness}</td>
-            <td>${data.recommendClinic}</td>
-            <td>${data.additionalComments || ""}</td>
-            <td>${data.contactInfo || ""}</td>
-            <td>${new Date(data.submittedAt).toLocaleString()}</td>
-          </tr>`;
-        tableBody.innerHTML += row;
+        tableBody.appendChild(row);
       });
 
-      document.getElementById("totalCount").textContent = total;
-      document.getElementById("recommendCount").textContent = recommendYes;
-      document.getElementById("excellentCount").textContent = excellentCare;
+      updateColumnVisibility();
     }
 
-    // Attach change listeners to all filters
-    document.getElementById("filterRating").addEventListener("change", loadFeedback);
-    document.getElementById("filterWaitTime").addEventListener("change", loadFeedback);
-    document.getElementById("filterFriendliness").addEventListener("change", loadFeedback);
-    document.getElementById("filterRecommend").addEventListener("change", loadFeedback);
+    function updateColumnVisibility() {
+      const checkboxes = document.querySelectorAll('#columnControls input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        const col = cb.getAttribute("data-col");
+        const cells = document.querySelectorAll(`[data-col="${col}"]`);
+        cells.forEach(cell => {
+          cell.classList.toggle("hidden-col", !cb.checked);
+        });
+      });
+    }
 
-    // Initial load
+    document.querySelectorAll('#columnControls input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener("change", updateColumnVisibility);
+    });
+
     loadFeedback();
   </script>
 </body>
