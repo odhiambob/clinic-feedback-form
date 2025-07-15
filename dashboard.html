@@ -8,36 +8,60 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      background-color: #f4f6f9;
+      background-color: #f5f7fa;
       font-family: 'Segoe UI', sans-serif;
     }
     .dashboard-title {
       font-size: 2rem;
-      font-weight: bold;
+      font-weight: 600;
     }
     .summary-card {
-      background: #fff;
+      background: #ffffff;
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       text-align: center;
     }
-    .summary-card h4 {
-      font-size: 1.2rem;
-      margin-bottom: 8px;
+    .summary-card h5 {
+      font-size: 1rem;
+      color: #6c757d;
     }
-    .form-check-inline {
-      margin-right: 15px;
-    }
-    .table-hover tbody tr:hover {
-      background-color: #eef6ff;
+    .summary-card .value {
+      font-size: 1.6rem;
+      font-weight: bold;
     }
     .chart-container {
       background: #fff;
-      border-radius: 12px;
       padding: 20px;
-      margin-top: 30px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+    }
+    .comments-section {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .comment-card {
+      border-bottom: 1px solid #e9ecef;
+      padding: 10px 0;
+    }
+    .comment-meta {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    .comment-text {
+      font-size: 1rem;
+    }
+    .toggle-table {
+      cursor: pointer;
+      font-size: 0.95rem;
+      margin-top: 20px;
+      color: #0d6efd;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -45,76 +69,82 @@
   <div class="container my-5">
     <div class="text-center mb-4">
       <h2 class="dashboard-title text-primary">📊 Clinic Feedback Dashboard</h2>
-      <p class="text-muted">Visual summary of patient experience</p>
+      <p class="text-muted">Track insights, sentiment, and experience in real-time</p>
     </div>
 
-    <!-- KPI cards -->
+    <!-- Summary KPIs -->
     <div class="row mb-4">
       <div class="col-md-4">
         <div class="summary-card">
-          <h4>Total Submissions</h4>
-          <div id="totalCount" class="fs-4 text-primary">0</div>
+          <h5>Total Submissions</h5>
+          <div id="totalCount" class="value text-primary">0</div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="summary-card">
-          <h4>Would Recommend</h4>
-          <div id="recommendCount" class="fs-4 text-success">0</div>
+          <h5>Would Recommend</h5>
+          <div id="recommendCount" class="value text-success">0</div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="summary-card">
-          <h4>Excellent Care</h4>
-          <div id="excellentCount" class="fs-4 text-warning">0</div>
+          <h5>Excellent Care</h5>
+          <div id="excellentCount" class="value text-warning">0</div>
         </div>
       </div>
     </div>
 
-    <!-- Chart area -->
+    <!-- Charts -->
     <div class="row">
       <div class="col-md-6">
         <div class="chart-container">
-          <h5 class="text-center">Care Quality Breakdown</h5>
+          <h6 class="text-center mb-3">Care Quality Distribution</h6>
           <canvas id="careChart"></canvas>
         </div>
       </div>
       <div class="col-md-6">
         <div class="chart-container">
-          <h5 class="text-center">Wait Time Distribution</h5>
+          <h6 class="text-center mb-3">Wait Time Responses</h6>
           <canvas id="waitChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Column visibility checkboxes -->
-    <div class="mt-5">
-      <strong>Show/Hide Columns:</strong><br />
-      <div id="columnControls" class="mt-2">
-        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" data-col="careQuality" checked> Care Quality</div>
-        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" data-col="waitTime" checked> Wait Time</div>
-        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" data-col="staffFriendliness" checked> Staff Friendliness</div>
-        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" data-col="recommendClinic" checked> Recommend?</div>
-        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" data-col="additionalComments" checked> Comments</div>
-        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" data-col="contactInfo" checked> Contact Info</div>
-        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" data-col="submittedAt" checked> Submitted At</div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="chart-container">
+          <h6 class="text-center mb-3">Staff Friendliness</h6>
+          <canvas id="friendChart"></canvas>
+        </div>
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="table-responsive mt-3">
-      <table class="table table-hover table-bordered align-middle" id="feedbackTable">
+    <!-- Comments -->
+    <div class="comments-section mt-4">
+      <h5 class="mb-3">📥 Comments & Suggestions</h5>
+      <div id="commentList"></div>
+    </div>
+
+    <!-- Table toggle -->
+    <div class="text-end">
+      <span class="toggle-table" onclick="toggleTable()">Show/hide full data table</span>
+    </div>
+
+    <!-- Full Table -->
+    <div id="tableSection" class="table-responsive mt-3" style="display:none;">
+      <table class="table table-bordered table-striped align-middle">
         <thead class="table-primary">
           <tr>
-            <th data-col="careQuality">Care Quality</th>
-            <th data-col="waitTime">Wait Time</th>
-            <th data-col="staffFriendliness">Staff Friendliness</th>
-            <th data-col="recommendClinic">Recommend?</th>
-            <th data-col="additionalComments">Comments</th>
-            <th data-col="contactInfo">Contact Info</th>
-            <th data-col="submittedAt">Submitted At</th>
+            <th>Care Quality</th>
+            <th>Wait Time</th>
+            <th>Staff Friendliness</th>
+            <th>Recommend?</th>
+            <th>Comments</th>
+            <th>Contact Info</th>
+            <th>Submitted At</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="feedbackTableBody"></tbody>
       </table>
     </div>
   </div>
@@ -136,17 +166,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const careCounts = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
-    const waitCounts = { "Less than 15 minutes": 0, "15–30 minutes": 0, "More than 30 minutes": 0 };
-
     const careChart = new Chart(document.getElementById("careChart"), {
       type: "pie",
       data: {
-        labels: Object.keys(careCounts),
+        labels: ["Excellent", "Good", "Average", "Poor"],
         datasets: [{
-          label: "Care Quality",
           data: [0, 0, 0, 0],
-          backgroundColor: ["#0d6efd", "#198754", "#ffc107", "#dc3545"]
+          backgroundColor: ["#198754", "#0d6efd", "#ffc107", "#dc3545"]
         }]
       }
     });
@@ -154,9 +180,9 @@
     const waitChart = new Chart(document.getElementById("waitChart"), {
       type: "bar",
       data: {
-        labels: Object.keys(waitCounts),
+        labels: ["< 15 min", "15–30 min", "> 30 min"],
         datasets: [{
-          label: "Wait Time",
+          label: "Responses",
           data: [0, 0, 0],
           backgroundColor: "#0dcaf0"
         }]
@@ -168,67 +194,96 @@
       }
     });
 
-    async function loadFeedback() {
-      const snapshot = await getDocs(collection(db, "clinic_feedback"));
-      const tbody = document.querySelector("#feedbackTable tbody");
-      tbody.innerHTML = "";
-
-      let total = 0, recommendYes = 0, excellentCare = 0;
-
-      // Reset counts
-      Object.keys(careCounts).forEach(k => careCounts[k] = 0);
-      Object.keys(waitCounts).forEach(k => waitCounts[k] = 0);
-
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        total++;
-        if (d.recommendClinic === "Yes") recommendYes++;
-        if (d.careQuality === "Excellent") excellentCare++;
-
-        careCounts[d.careQuality] = (careCounts[d.careQuality] || 0) + 1;
-        waitCounts[d.waitTime] = (waitCounts[d.waitTime] || 0) + 1;
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td data-col="careQuality">${d.careQuality}</td>
-          <td data-col="waitTime">${d.waitTime}</td>
-          <td data-col="staffFriendliness">${d.staffFriendliness}</td>
-          <td data-col="recommendClinic">${d.recommendClinic}</td>
-          <td data-col="additionalComments">${d.additionalComments || ""}</td>
-          <td data-col="contactInfo">${d.contactInfo || ""}</td>
-          <td data-col="submittedAt">${new Date(d.submittedAt).toLocaleString()}</td>
-        `;
-        tbody.appendChild(row);
-      });
-
-      document.getElementById("totalCount").textContent = total;
-      document.getElementById("recommendCount").textContent = recommendYes;
-      document.getElementById("excellentCount").textContent = excellentCare;
-
-      // Update charts
-      careChart.data.datasets[0].data = Object.values(careCounts);
-      waitChart.data.datasets[0].data = Object.values(waitCounts);
-      careChart.update();
-      waitChart.update();
-
-      updateColumnVisibility();
-    }
-
-    function updateColumnVisibility() {
-      document.querySelectorAll('#columnControls input[type="checkbox"]').forEach(cb => {
-        const col = cb.getAttribute("data-col");
-        const cells = document.querySelectorAll(`[data-col="${col}"]`);
-        cells.forEach(cell => {
-          cell.style.display = cb.checked ? "" : "none";
-        });
-      });
-    }
-
-    document.querySelectorAll('#columnControls input[type="checkbox"]').forEach(cb => {
-      cb.addEventListener("change", updateColumnVisibility);
+    const friendChart = new Chart(document.getElementById("friendChart"), {
+      type: "bar",
+      data: {
+        labels: ["Excellent", "Good", "Average", "Poor"],
+        datasets: [{
+          label: "Staff Ratings",
+          data: [0, 0, 0, 0],
+          backgroundColor: "#6f42c1"
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
     });
 
-    loadFeedback();
+    function toggleTable() {
+      const section = document.getElementById("tableSection");
+      section.style.display = section.style.display === "none" ? "block" : "none";
+    }
+
+    async function loadData() {
+      const querySnapshot = await getDocs(collection(db, "clinic_feedback"));
+      const tableBody = document.getElementById("feedbackTableBody");
+      const commentList = document.getElementById("commentList");
+
+      let total = 0, recommend = 0, excellent = 0;
+      let careData = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
+      let waitData = {
+        "Less than 15 minutes": 0,
+        "15–30 minutes": 0,
+        "More than 30 minutes": 0
+      };
+      let friendData = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
+
+      tableBody.innerHTML = "";
+      commentList.innerHTML = "";
+
+      querySnapshot.forEach(doc => {
+        const d = doc.data();
+        total++;
+        if (d.recommendClinic === "Yes") recommend++;
+        if (d.careQuality === "Excellent") excellent++;
+
+        careData[d.careQuality] = (careData[d.careQuality] || 0) + 1;
+        waitData[d.waitTime] = (waitData[d.waitTime] || 0) + 1;
+        friendData[d.staffFriendliness] = (friendData[d.staffFriendliness] || 0) + 1;
+
+        // Table row
+        const row = `
+          <tr>
+            <td>${d.careQuality}</td>
+            <td>${d.waitTime}</td>
+            <td>${d.staffFriendliness}</td>
+            <td>${d.recommendClinic}</td>
+            <td>${d.additionalComments || ""}</td>
+            <td>${d.contactInfo || ""}</td>
+            <td>${new Date(d.submittedAt).toLocaleString()}</td>
+          </tr>`;
+        tableBody.innerHTML += row;
+
+        // Comment
+        if (d.additionalComments && d.additionalComments.trim() !== "") {
+          commentList.innerHTML += `
+            <div class="comment-card">
+              <div class="comment-meta">
+                ${d.careQuality} care • ${d.staffFriendliness} staff • ${d.recommendClinic} • ${new Date(d.submittedAt).toLocaleString()}
+              </div>
+              <div class="comment-text">${d.additionalComments}</div>
+            </div>
+          `;
+        }
+      });
+
+      // Update KPIs
+      document.getElementById("totalCount").textContent = total;
+      document.getElementById("recommendCount").textContent = recommend;
+      document.getElementById("excellentCount").textContent = excellent;
+
+      // Update charts
+      careChart.data.datasets[0].data = Object.values(careData);
+      waitChart.data.datasets[0].data = Object.values(waitData);
+      friendChart.data.datasets[0].data = Object.values(friendData);
+      careChart.update();
+      waitChart.update();
+      friendChart.update();
+    }
+
+    loadData();
   </script>
 </body>
 </html>
