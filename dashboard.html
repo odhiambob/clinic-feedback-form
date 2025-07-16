@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chambua Clinic Dashboard</title>
 
-  <!-- AdminLTE Theme -->
+  <!-- AdminLTE & Chart.js -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
   <style>
     .card-title { font-size: 1rem; }
@@ -38,10 +39,13 @@
       <div class="container-fluid d-flex flex-column align-items-center">
         <h3 class="text-dark text-center mb-2">📊 Chambua Clinic Feedback Dashboard</h3>
         <input type="date" id="datePicker" />
+        <div id="alertBox" class="alert alert-danger mt-2" style="display:none;">
+          ⚠️ Alert: A client indicated they would <strong>not recommend</strong> the clinic.
+        </div>
       </div>
     </section>
 
-    <!-- KPIs -->
+    <!-- KPI boxes -->
     <section class="content">
       <div class="row">
         <div class="col-lg-4 col-6">
@@ -104,34 +108,20 @@
       <!-- Comments Section -->
       <div class="card card-secondary">
         <div class="card-header"><h3 class="card-title">Client Comments & Suggestions</h3></div>
-        <div class="card-body" style="max-height: 300px; overflow-y: auto;" id="commentList">
-          <!-- Comments load here -->
-        </div>
+        <div class="card-body" style="max-height: 300px; overflow-y: auto;" id="commentList"></div>
       </div>
 
-      <!-- Collapsible Table -->
+      <!-- Table -->
       <div class="card card-outline card-dark">
         <div class="card-header">
           <h3 class="card-title">All Feedback (Raw View)</h3>
-          <div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-              <i class="fas fa-minus"></i>
-            </button>
-          </div>
         </div>
         <div class="card-body table-responsive">
           <table class="table table-bordered table-sm">
-            <thead class="table-light">
-              <tr>
-                <th>Care Quality</th>
-                <th>Wait Time</th>
-                <th>Friendliness</th>
-                <th>Recommend?</th>
-                <th>Comment</th>
-                <th>Contact</th>
-                <th>Submitted At</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>Care Quality</th><th>Wait Time</th><th>Friendliness</th><th>Recommend?</th>
+              <th>Comment</th><th>Contact</th><th>Submitted At</th>
+            </tr></thead>
             <tbody id="feedbackTableBody"></tbody>
           </table>
         </div>
@@ -140,63 +130,55 @@
   </div>
 </div>
 
-<!-- Firebase + Chart Scripts -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
+  const app = initializeApp({
     apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
     authDomain: "chambua-feedback-system.firebaseapp.com",
-    projectId: "chambua-feedback-system",
-    storageBucket: "chambua-feedback-system.appspot.com",
-    messagingSenderId: "440404138384",
-    appId: "1:440404138384:web:8f971a343eb6e467e23b15",
-    measurementId: "G-XCX96KNJKC"
-  };
-
-  const app = initializeApp(firebaseConfig);
+    projectId: "chambua-feedback-system"
+  });
   const db = getFirestore(app);
 
-  const careChart = new Chart(document.getElementById("careChart"), {
+  const plugin = ChartDataLabels;
+
+  const careChart = new Chart(careChart, {
     type: "pie",
-    data: {
-      labels: ["Excellent", "Good", "Average", "Poor"],
-      datasets: [{ data: [0, 0, 0, 0], backgroundColor: ["#28a745", "#007bff", "#ffc107", "#dc3545"] }]
-    }
+    plugins: [plugin],
+    data: { labels: ["Excellent", "Good", "Average", "Poor"], datasets: [{ data: [0,0,0,0], backgroundColor: ["#28a745", "#007bff", "#ffc107", "#dc3545"] }] },
+    options: { plugins: { datalabels: { formatter: (v, ctx) => v ? `${v}%` : '', color: '#fff' } } }
   });
 
-  const waitChart = new Chart(document.getElementById("waitChart"), {
+  const waitChart = new Chart(waitChart, {
     type: "bar",
-    data: {
-      labels: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
-      datasets: [{ label: "Responses (%)", data: [0, 0, 0], backgroundColor: "#17a2b8" }]
-    },
-    options: { scales: { y: { beginAtZero: true, ticks: { callback: value => value + "%" } } } }
+    plugins: [plugin],
+    data: { labels: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"], datasets: [{ label: "Responses (%)", data: [0,0,0], backgroundColor: "#17a2b8" }] },
+    options: { scales: { y: { beginAtZero: true, ticks: { callback: v => v + "%" } } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => `${v}%` } } }
   });
 
-  const friendChart = new Chart(document.getElementById("friendChart"), {
+  const friendChart = new Chart(friendChart, {
     type: "bar",
-    data: {
-      labels: ["Excellent", "Good", "Average", "Poor"],
-      datasets: [{ label: "Ratings (%)", data: [0, 0, 0, 0], backgroundColor: "#6f42c1" }]
-    },
-    options: { scales: { y: { beginAtZero: true, ticks: { callback: value => value + "%" } } } }
+    plugins: [plugin],
+    data: { labels: ["Excellent", "Good", "Average", "Poor"], datasets: [{ label: "Ratings (%)", data: [0,0,0,0], backgroundColor: "#6f42c1" }] },
+    options: { scales: { y: { beginAtZero: true, ticks: { callback: v => v + "%" } } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => `${v}%` } } }
   });
 
-  const recommendChart = new Chart(document.getElementById("recommendChart"), {
+  const recommendChart = new Chart(recommendChart, {
     type: "doughnut",
-    data: {
-      labels: ["Yes", "No"],
-      datasets: [{ data: [0, 0], backgroundColor: ["#28a745", "#dc3545"] }]
-    }
+    plugins: [plugin],
+    data: { labels: ["Yes", "No"], datasets: [{ data: [0,0], backgroundColor: ["#28a745", "#dc3545"] }] },
+    options: { plugins: { datalabels: { formatter: (v, ctx) => v ? `${v}%` : '', color: '#fff' } } }
   });
+
+  document.getElementById("datePicker").addEventListener("change", e => loadData(e.target.value));
+  loadData();
 
   async function loadData(selectedDate = null) {
-    const snapshot = await getDocs(collection(db, "clinic_feedback"));
-
+    const querySnapshot = await getDocs(collection(db, "clinic_feedback"));
     const tableBody = document.getElementById("feedbackTableBody");
     const commentList = document.getElementById("commentList");
+    const alertBox = document.getElementById("alertBox");
 
     let total = 0, recommend = 0, excellent = 0;
     let care = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
@@ -207,16 +189,11 @@
     tableBody.innerHTML = "";
     commentList.innerHTML = "";
 
-    snapshot.forEach(doc => {
+    querySnapshot.forEach(doc => {
       const d = doc.data();
       const submittedDate = new Date(d.submittedAt);
       const selected = selectedDate ? new Date(selectedDate) : null;
-
-      if (selected && (
-        submittedDate.getFullYear() !== selected.getFullYear() ||
-        submittedDate.getMonth() !== selected.getMonth() ||
-        submittedDate.getDate() !== selected.getDate()
-      )) return;
+      if (selected && submittedDate.toDateString() !== selected.toDateString()) return;
 
       total++;
       if (d.recommendClinic === "Yes") { recommend++; recommendYes++; }
@@ -227,25 +204,10 @@
       wait[d.waitTime] = (wait[d.waitTime] || 0) + 1;
       friend[d.staffFriendliness] = (friend[d.staffFriendliness] || 0) + 1;
 
-      tableBody.innerHTML += `
-        <tr>
-          <td>${d.careQuality}</td>
-          <td>${d.waitTime}</td>
-          <td>${d.staffFriendliness}</td>
-          <td>${d.recommendClinic}</td>
-          <td>${d.additionalComments || ""}</td>
-          <td>${d.contactInfo || ""}</td>
-          <td>${new Date(d.submittedAt).toLocaleString()}</td>
-        </tr>`;
+      tableBody.innerHTML += `<tr><td>${d.careQuality}</td><td>${d.waitTime}</td><td>${d.staffFriendliness}</td><td>${d.recommendClinic}</td><td>${d.additionalComments || ""}</td><td>${d.contactInfo || ""}</td><td>${new Date(d.submittedAt).toLocaleString()}</td></tr>`;
 
-      if (d.additionalComments && d.additionalComments.trim() !== "") {
-        commentList.innerHTML += `
-          <div class="comment-box">
-            <div class="comment-meta">
-              ${d.careQuality} care • ${d.staffFriendliness} staff • ${d.recommendClinic} • ${new Date(d.submittedAt).toLocaleString()}
-            </div>
-            <div class="comment-text">${d.additionalComments}</div>
-          </div>`;
+      if (d.additionalComments?.trim()) {
+        commentList.innerHTML += `<div class="comment-box"><div class="comment-meta">${d.careQuality} care • ${d.staffFriendliness} staff • ${d.recommendClinic} • ${new Date(d.submittedAt).toLocaleString()}</div><div class="comment-text">${d.additionalComments}</div></div>`;
       }
     });
 
@@ -253,24 +215,18 @@
     document.getElementById("recommendCount").textContent = recommend;
     document.getElementById("excellentCount").textContent = excellent;
 
-    const toPercent = val => total === 0 ? 0 : Math.round((val / total) * 100);
+    const toPercent = val => total ? Math.round((val / total) * 100) : 0;
 
-    careChart.data.datasets[0].data = Object.values(care);
+    careChart.data.datasets[0].data = Object.values(care).map(toPercent);
     waitChart.data.datasets[0].data = Object.values(wait).map(toPercent);
     friendChart.data.datasets[0].data = Object.values(friend).map(toPercent);
-    recommendChart.data.datasets[0].data = [recommendYes, recommendNo];
+    recommendChart.data.datasets[0].data = [toPercent(recommendYes), toPercent(recommendNo)];
 
-    careChart.update();
-    waitChart.update();
-    friendChart.update();
-    recommendChart.update();
+    careChart.update(); waitChart.update(); friendChart.update(); recommendChart.update();
+
+    // Show alert if any "No"
+    alertBox.style.display = recommendNo > 0 ? "block" : "none";
   }
-
-  document.getElementById("datePicker").addEventListener("change", e => {
-    loadData(e.target.value);
-  });
-
-  loadData();
 </script>
 </body>
 </html>
