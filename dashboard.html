@@ -10,20 +10,46 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
   <style>
     body {
-      background-color: #f5f7fa;
       font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f7fa;
     }
-    .dashboard-header {
-      text-align: center;
-      margin-top: 20px;
-      margin-bottom: 10px;
+
+    .sidebar {
+      width: 220px;
+      height: 100vh;
+      background-color: #343a40;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      padding-top: 20px;
     }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+    }
+
+    .sidebar a.active,
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+
+    .main {
+      margin-left: 220px;
+      padding: 30px 20px;
+      max-width: 1140px;
+    }
+
     .kpi-box {
       border-radius: 5px;
       padding: 15px;
       color: white;
       text-align: center;
     }
+
     .kpi-blue { background-color: #17a2b8; }
     .kpi-green { background-color: #28a745; }
     .kpi-yellow { background-color: #ffc107; color: #333; }
@@ -34,156 +60,165 @@
       margin-bottom: 10px;
       background-color: white;
     }
-    .tab-content {
-      padding-top: 20px;
+
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="dashboard-header">
-      <h2>📊 Chambua Clinic Feedback Dashboard</h2>
-      <input type="date" id="dateFilter" class="form-control w-auto mx-auto" />
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <h5 class="text-center mb-4">📊 Chambua Dashboard</h5>
+  <a href="#" class="active" onclick="showTab('dashboardTab')">Dashboard</a>
+  <a href="#" onclick="showTab('trendTab')">Trends</a>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="dashboard-header">
+    <h2>Clinic Feedback Summary</h2>
+    <input type="date" id="dateFilter" class="form-control w-auto mx-auto" />
+  </div>
+
+  <div id="dashboardTab" class="tab-pane active">
+    <div class="row">
+      <div class="col-md-4"><div class="kpi-box kpi-blue"><h2 id="totalSubmissions">2</h2><p>Total Submissions</p></div></div>
+      <div class="col-md-4"><div class="kpi-box kpi-green"><h2 id="wouldRecommend">1</h2><p>Would Recommend</p></div></div>
+      <div class="col-md-4"><div class="kpi-box kpi-yellow"><h2 id="excellentCare">2</h2><p>Excellent Care</p></div></div>
     </div>
 
-    <!-- Nav Tabs -->
-    <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
-      <li class="nav-item">
-        <a class="nav-link active" id="main-tab" data-toggle="tab" href="#main" role="tab">Dashboard</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="trend-tab" data-toggle="tab" href="#trend" role="tab">Trends</a>
-      </li>
-    </ul>
-
-    <!-- Tab Contents -->
-    <div class="tab-content">
-      <!-- Main Dashboard Tab -->
-      <div class="tab-pane fade show active" id="main" role="tabpanel">
-        <div class="row mt-3">
-          <div class="col-md-4"><div class="kpi-box kpi-blue"><h2 id="totalSubmissions">2</h2><p>Total Submissions</p></div></div>
-          <div class="col-md-4"><div class="kpi-box kpi-green"><h2 id="wouldRecommend">1</h2><p>Would Recommend</p></div></div>
-          <div class="col-md-4"><div class="kpi-box kpi-yellow"><h2 id="excellentCare">2</h2><p>Excellent Care</p></div></div>
-        </div>
-
-        <div class="row mt-4">
-          <div class="col-md-3">
-            <div class="card">
-              <div class="card-header bg-primary text-white">Care Quality</div>
-              <div class="card-body"><canvas id="careChart"></canvas></div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card">
-              <div class="card-header bg-info text-white">Wait Time</div>
-              <div class="card-body"><canvas id="waitTimeChart"></canvas></div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card">
-              <div class="card-header bg-purple text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
-              <div class="card-body"><canvas id="friendlinessChart"></canvas></div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card">
-              <div class="card-header bg-success text-white">Would Recommend?</div>
-              <div class="card-body"><canvas id="recommendChart"></canvas></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Comments -->
-        <div class="card mt-4">
-          <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
-          <div class="card-body" id="commentsSection">
-            <div class="comment-card">
-              Excellent care • Excellent staff • No • 7/15/2025, 3:24:22 PM
-            </div>
-          </div>
+    <div class="row mt-4">
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-primary text-white">Care Quality</div>
+          <div class="card-body"><canvas id="careChart"></canvas></div>
         </div>
       </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-info text-white">Wait Time</div>
+          <div class="card-body"><canvas id="waitTimeChart"></canvas></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-purple text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
+          <div class="card-body"><canvas id="friendlinessChart"></canvas></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-success text-white">Would Recommend?</div>
+          <div class="card-body"><canvas id="recommendChart"></canvas></div>
+        </div>
+      </div>
+    </div>
 
-      <!-- Trends Tab -->
-      <div class="tab-pane fade" id="trend" role="tabpanel">
-        <div class="mt-4">
-          <h4>Feedback Trends</h4>
-          <p>Select a time range to view changes in sentiment or scores over time.</p>
-          <div class="form-inline">
-            <label for="startDate">Start: </label>
-            <input type="date" id="startDate" class="form-control mx-2"/>
-            <label for="endDate">End: </label>
-            <input type="date" id="endDate" class="form-control mx-2"/>
-            <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
-          </div>
-          <div class="mt-3">
-            <canvas id="trendChart" height="100"></canvas>
-          </div>
+    <!-- Comments -->
+    <div class="card mt-4">
+      <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
+      <div class="card-body" id="commentsSection">
+        <div class="comment-card">
+          Excellent care • Excellent staff • No • 7/15/2025, 3:24:22 PM
         </div>
       </div>
     </div>
   </div>
 
-  <!-- JS Placeholder Logic -->
-  <script>
-    // Replace these with real Firebase or JS data pulls later
-    const pieOptions = { responsive: true, legend: { position: 'bottom' } };
+  <!-- Trend Tab -->
+  <div id="trendTab" class="tab-pane">
+    <h4>Feedback Trends</h4>
+    <p>Select a time range to view changes in sentiment or scores over time.</p>
+    <div class="form-inline">
+      <label for="startDate">Start: </label>
+      <input type="date" id="startDate" class="form-control mx-2"/>
+      <label for="endDate">End: </label>
+      <input type="date" id="endDate" class="form-control mx-2"/>
+      <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
+    </div>
+    <div class="mt-4">
+      <canvas id="trendChart" height="100"></canvas>
+    </div>
+  </div>
+</div>
 
-    new Chart(document.getElementById('careChart'), {
-      type: 'pie',
-      data: {
-        labels: ['Excellent', 'Good', 'Average', 'Poor'],
-        datasets: [{ data: [1, 0, 0, 0], backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545'] }]
-      },
-      options: pieOptions
-    });
+<!-- Charts -->
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+    event.target.classList.add('active');
+  }
 
-    new Chart(document.getElementById('waitTimeChart'), {
-      type: 'bar',
-      data: {
-        labels: ['< 15 min', '15–30 min', '> 30 min'],
-        datasets: [{ label: 'Responses (%)', data: [100, 0, 0], backgroundColor: '#17a2b8' }]
-      },
-      options: { responsive: true, legend: { display: false } }
-    });
+  const pieOptions = { responsive: true, legend: { position: 'bottom' } };
 
-    new Chart(document.getElementById('friendlinessChart'), {
-      type: 'bar',
-      data: {
-        labels: ['Excellent', 'Good', 'Average', 'Poor'],
-        datasets: [{ label: 'Ratings (%)', data: [45, 45, 10, 0], backgroundColor: '#6f42c1' }]
-      },
-      options: { responsive: true, legend: { display: false } }
-    });
+  new Chart(document.getElementById('careChart'), {
+    type: 'pie',
+    data: {
+      labels: ['Excellent', 'Good', 'Average', 'Poor'],
+      datasets: [{ data: [1, 0, 0, 0], backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545'] }]
+    },
+    options: pieOptions
+  });
 
-    new Chart(document.getElementById('recommendChart'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Yes', 'No'],
-        datasets: [{ data: [1, 1], backgroundColor: ['#28a745', '#dc3545'] }]
-      },
-      options: pieOptions
-    });
+  new Chart(document.getElementById('waitTimeChart'), {
+    type: 'bar',
+    data: {
+      labels: ['< 15 min', '15–30 min', '> 30 min'],
+      datasets: [{ label: 'Responses (%)', data: [100, 0, 0], backgroundColor: '#17a2b8' }]
+    },
+    options: { responsive: true, legend: { display: false } }
+  });
 
-    new Chart(document.getElementById('trendChart'), {
-      type: 'line',
-      data: {
-        labels: ['7/10', '7/11', '7/12', '7/13', '7/14', '7/15'],
-        datasets: [{
-          label: 'Total Feedback',
-          data: [2, 3, 4, 5, 4, 6],
-          borderColor: '#007bff',
-          fill: false
-        }]
-      },
-      options: { responsive: true, title: { display: true, text: 'Feedback Trend Over Time' } }
-    });
+  new Chart(document.getElementById('friendlinessChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Excellent', 'Good', 'Average', 'Poor'],
+      datasets: [{ label: 'Ratings (%)', data: [45, 45, 10, 0], backgroundColor: '#6f42c1' }]
+    },
+    options: { responsive: true, legend: { display: false } }
+  });
 
-    function filterTrends() {
-      const start = document.getElementById("startDate").value;
-      const end = document.getElementById("endDate").value;
-      alert(`Trend filter will apply from ${start} to ${end}`);
-    }
-  </script>
+  new Chart(document.getElementById('recommendChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Yes', 'No'],
+      datasets: [{ data: [1, 1], backgroundColor: ['#28a745', '#dc3545'] }]
+    },
+    options: pieOptions
+  });
+
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: ['7/10', '7/11', '7/12', '7/13', '7/14', '7/15'],
+      datasets: [{
+        label: 'Total Feedback',
+        data: [2, 3, 4, 5, 4, 6],
+        borderColor: '#007bff',
+        fill: false
+      }]
+    },
+    options: { responsive: true, title: { display: true, text: 'Feedback Trend Over Time' } }
+  });
+
+  function filterTrends() {
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
+    alert(`Trend filter will apply from ${start} to ${end}`);
+  }
+</script>
 </body>
 </html>
