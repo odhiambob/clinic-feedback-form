@@ -58,7 +58,7 @@
   const auth = firebase.auth();
 </script>
 
-<!-- Login UI -->
+<!-- Login -->
 <div id="loginContainer" style="display:none;">
   <h4 class="text-center mb-4">🔐 Admin Login</h4>
   <div class="mb-3"><input type="email" id="loginEmail" class="form-control" placeholder="Email" /></div>
@@ -131,8 +131,15 @@
       <div class="row">
         <div class="col-md-3"><label>Start Date</label><input type="date" class="form-control" id="startDate"></div>
         <div class="col-md-3"><label>End Date</label><input type="date" class="form-control" id="endDate"></div>
-        <div class="col-md-3"><label>Trend Variable</label><select class="form-control" id="trendVariable"><option value="recommendClinic">Would Recommend</option><option value="careQuality">Care Quality</option><option value="waitTime">Wait Time</option><option value="staffFriendliness">Staff Friendliness</option></select></div>
-        <div class="col-md-3 mt-4"><button class="btn btn-primary mt-2" onclick="filterTrends()">Apply Filter</button></div>
+        <div class="col-md-4"><label>Select Variable</label>
+          <select class="form-control" id="trendVariable">
+            <option value="recommendClinic">Would Recommend</option>
+            <option value="careQuality">Care Quality</option>
+            <option value="waitTime">Wait Time</option>
+            <option value="staffFriendliness">Staff Friendliness</option>
+          </select>
+        </div>
+        <div class="col-md-2 mt-4"><button class="btn btn-primary mt-2" onclick="filterTrends()">Apply Filter</button></div>
       </div>
       <div class="chart-wrapper mt-4"><canvas id="trendChart" height="100"></canvas></div>
     </div>
@@ -149,27 +156,29 @@
       document.getElementById("dashboardContent").style.display = "none";
     }
   });
-
+  
   function loginWithEmail() {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
     auth.signInWithEmailAndPassword(email, password).catch(alert);
   }
-
+  
   function loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider).catch(alert);
   }
-
-  function logout() { auth.signOut(); }
-
+  
+  function logout() {
+    auth.signOut();
+  }
+  
   function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
     event.target.classList.add('active');
   }
-
+  
   function exportChart(canvasId) {
     html2canvas(document.getElementById(canvasId)).then(canvas => {
       const link = document.createElement('a');
@@ -178,16 +187,16 @@
       link.click();
     });
   }
-
+  
   let feedbackData = [];
-
+  
   function loadDashboardData() {
     db.collection("clinic_feedback").orderBy("submittedAt", "desc").onSnapshot(snapshot => {
       feedbackData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       updateDashboard();
     });
   }
-
+  
   function updateDashboard() {
     const total = feedbackData.length;
     const recommend = feedbackData.filter(f => f.recommendClinic === "Yes").length;
@@ -195,46 +204,40 @@
     document.getElementById("totalSubmissions").innerText = total;
     document.getElementById("wouldRecommend").innerText = recommend;
     document.getElementById("excellentCare").innerText = excellentCare;
-
+  
     updateChart("careChart", ["Excellent", "Good", "Average", "Poor"], f => f.careQuality);
     updateChart("waitTimeChart", ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"], f => f.waitTime);
     updateChart("friendlinessChart", ["Excellent", "Good", "Average", "Poor"], f => f.staffFriendliness);
     updateChart("recommendChart", ["Yes", "No"], f => f.recommendClinic);
-
-    const comments = feedbackData
-      .filter(f => f.additionalComments)
-      .map(f => `<div class="comment-card">${f.additionalComments} • ${f.recommendClinic} • ${f.submittedAt?.toDate().toLocaleString() || ''}</div>`)
-      .join("");
+  
+    const comments = feedbackData.filter(f => f.additionalComments)
+      .map(f => `<div class="comment-card">${f.additionalComments} • ${f.recommendClinic} • ${f.submittedAt?.toDate().toLocaleString() || ''}</div>`).join("");
     document.getElementById("commentsSection").innerHTML = comments;
   }
-
+  
   function updateChart(canvasId, labels, extractor) {
     const counts = labels.map(label => feedbackData.filter(f => extractor(f) === label).length);
-    const colors = ['#28a745', '#007bff', '#ffc107', '#dc3545', '#6f42c1'];
     const ctx = document.getElementById(canvasId).getContext('2d');
-    if (window[canvasId]) window[canvasId].destroy();
+    if (window[canvasId] instanceof Chart) window[canvasId].destroy();
     window[canvasId] = new Chart(ctx, {
-      type: canvasId === "recommendChart" || canvasId === "careChart" ? "pie" : "bar",
-      data: {
-        labels,
-        datasets: [{ data: counts, backgroundColor: colors }]
-      },
+      type: (canvasId === "recommendChart" || canvasId === "careChart") ? "pie" : "bar",
+      data: { labels, datasets: [{ data: counts, backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545', '#6f42c1'] }] },
       options: { responsive: true, legend: { position: 'bottom' } }
     });
   }
-
+  
   function filterTrends() {
     const start = new Date(document.getElementById("startDate").value);
     const end = new Date(document.getElementById("endDate").value);
     end.setHours(23, 59, 59);
     const trendKey = document.getElementById("trendVariable").value;
-
+  
     const filtered = feedbackData.filter(f => {
       const date = f.submittedAt?.toDate?.();
       return (!start || !date || date >= start)
           && (!end || !date || date <= end);
     });
-
+  
     const dateMap = {};
     filtered.forEach(f => {
       const date = f.submittedAt?.toDate()?.toLocaleDateString();
@@ -244,19 +247,19 @@
       if (!dateMap[date]) dateMap[date] = {};
       dateMap[date][value] = (dateMap[date][value] || 0) + 1;
     });
-
+  
     const allDates = Object.keys(dateMap).sort();
     const allLabels = [...new Set(filtered.map(f => f[trendKey]))];
-
+  
     const datasets = allLabels.map(label => ({
       label,
       data: allDates.map(date => dateMap[date]?.[label] || 0),
       borderColor: getRandomColor(),
       fill: false
     }));
-
+  
     const trendCtx = document.getElementById("trendChart").getContext('2d');
-    if (window.trendChart) window.trendChart.destroy();
+    if (window.trendChart instanceof Chart) window.trendChart.destroy();
     window.trendChart = new Chart(trendCtx, {
       type: "line",
       data: { labels: allDates, datasets },
@@ -267,11 +270,12 @@
       }
     });
   }
-
+  
   function getRandomColor() {
     const palette = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#17a2b8', '#fd7e14'];
     return palette[Math.floor(Math.random() * palette.length)];
   }
-</script>
-</body>
-</html>
+  </script>
+  </body>
+  </html>
+  
