@@ -29,8 +29,16 @@
       text-align: right;
       margin-top: 10px;
     }
-    .btn-primary {
+    .btn-primary, .btn-google {
       width: 100%;
+    }
+    .btn-google {
+      background-color: #4285f4;
+      color: white;
+      margin-top: 15px;
+    }
+    .btn-google:hover {
+      background-color: #3367d6;
     }
   </style>
 </head>
@@ -46,6 +54,9 @@
       <button id="loginBtn" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login</button>
       <a href="#" class="form-link" id="forgotLink">Forgot password?</a>
       <div class="text-danger mt-2" id="loginError"></div>
+
+      <hr />
+      <button id="googleBtn" class="btn btn-google"><i class="fab fa-google"></i> Sign in with Google</button>
     </div>
 
     <div id="resetForm" style="display:none;">
@@ -56,12 +67,11 @@
     </div>
   </div>
 
-  <!-- Firebase Classic SDKs -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
   <script>
-    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
       authDomain: "chambua-feedback-system.firebaseapp.com",
@@ -70,7 +80,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Login
+    // Email/password login
     document.getElementById("loginBtn").onclick = function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -100,6 +110,18 @@
         })
         .catch((error) => {
           document.getElementById("resetMsg").textContent = error.message;
+        });
+    };
+
+    // Google Sign-In
+    document.getElementById("googleBtn").onclick = function () {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(() => {
+          window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+          document.getElementById("loginError").textContent = error.message;
         });
     };
   </script>
