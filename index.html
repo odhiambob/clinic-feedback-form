@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +9,17 @@
     body { background-color: #f5f7fa; }
     .container { max-width: 600px; margin-top: 50px; }
     .form-label { font-weight: 500; }
+    #thankYouMessage {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.25rem;
+      color: #155724;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -63,11 +73,17 @@
       </div>
       <button type="submit" class="btn btn-primary">Submit Feedback</button>
     </form>
+
+    <div id="thankYouMessage">
+      <h4>Thank you for participating!</h4>
+      <p>Your feedback has been successfully submitted. We appreciate your time.</p>
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
@@ -80,8 +96,17 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    document.getElementById("feedbackForm").addEventListener("submit", async function (e) {
+    // Sign in anonymously so we meet the Firestore security rule
+    signInAnonymously(auth).catch((error) => {
+      console.error("Anonymous auth failed:", error);
+    });
+
+    const form = document.getElementById("feedbackForm");
+    const thankYou = document.getElementById("thankYouMessage");
+
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const formData = {
@@ -91,15 +116,15 @@
         recommendClinic: document.getElementById("recommendClinic").value,
         additionalComments: document.getElementById("additionalComments").value,
         contactInfo: document.getElementById("contactInfo").value,
-        submittedAt: new Date().toISOString()
+        submittedAt: serverTimestamp()
       };
 
       try {
         await addDoc(collection(db, "clinic_feedback"), formData);
-        alert("Thank you! Your feedback has been submitted.");
-        document.getElementById("feedbackForm").reset();
+        form.style.display = "none";
+        thankYou.style.display = "block";
       } catch (error) {
-        console.error("Error adding document: ", error);
+        console.error("Error adding document:", error);
         alert("Something went wrong. Please try again.");
       }
     });
