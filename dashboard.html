@@ -65,93 +65,96 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
-      authDomain: "chambua-feedback-system.firebaseapp.com",
-      projectId: "chambua-feedback-system"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+    window.onload = function () {
+      const firebaseConfig = {
+        apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
+        authDomain: "chambua-feedback-system.firebaseapp.com",
+        projectId: "chambua-feedback-system"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth();
 
-    const careMap = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
-    const waitMap = { "Less than 15 minutes": 0, "15–30 minutes": 0, "More than 30 minutes": 0 };
-    const friendMap = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
-    const recommendMap = { Yes: 0, No: 0 };
+      const careMap = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
+      const waitMap = { "Less than 15 minutes": 0, "15–30 minutes": 0, "More than 30 minutes": 0 };
+      const friendMap = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
+      const recommendMap = { Yes: 0, No: 0 };
 
-    let total = 0, recommend = 0, excellent = 0;
+      let total = 0, recommend = 0, excellent = 0;
 
-    const careChart = new Chart(document.getElementById("careChart"), {
-      type: 'pie',
-      data: { labels: Object.keys(careMap), datasets: [{ data: [], backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545'] }] },
-      options: { plugins: { datalabels: { formatter: (v, ctx) => v + '%', color: '#fff' } } },
-      plugins: [ChartDataLabels]
-    });
-    const waitChart = new Chart(document.getElementById("waitChart"), {
-      type: 'bar',
-      data: { labels: Object.keys(waitMap), datasets: [{ label: 'Wait Time', data: [], backgroundColor: '#17a2b8' }] },
-      options: { scales: { y: { beginAtZero: true } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => v + '%' } } },
-      plugins: [ChartDataLabels]
-    });
-    const friendChart = new Chart(document.getElementById("friendChart"), {
-      type: 'bar',
-      data: { labels: Object.keys(friendMap), datasets: [{ label: 'Friendliness', data: [], backgroundColor: '#6f42c1' }] },
-      options: { scales: { y: { beginAtZero: true } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => v + '%' } } },
-      plugins: [ChartDataLabels]
-    });
-    const recommendChart = new Chart(document.getElementById("recommendChart"), {
-      type: 'doughnut',
-      data: { labels: Object.keys(recommendMap), datasets: [{ data: [], backgroundColor: ['#28a745', '#dc3545'] }] },
-      options: { plugins: { datalabels: { formatter: (v) => v + '%', color: '#fff' } } },
-      plugins: [ChartDataLabels]
-    });
-
-    async function loadData() {
-      const tableBody = document.getElementById("feedbackTableBody");
-      const commentList = document.getElementById("commentList");
-      const alertBox = document.getElementById("alertBox");
-
-      const snapshot = await db.collection("clinic_feedback").get();
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        total++;
-        if (d.recommendClinic === "Yes") recommend++;
-        if (d.careQuality === "Excellent") excellent++;
-        if (d.recommendClinic === "No") alertBox.classList.remove("d-none");
-
-        careMap[d.careQuality]++;
-        waitMap[d.waitTime]++;
-        friendMap[d.staffFriendliness]++;
-        recommendMap[d.recommendClinic]++;
-
-        if (d.additionalComments) commentList.innerHTML += `<p><strong>${d.careQuality}</strong>: ${d.additionalComments}</p>`;
-
-        tableBody.innerHTML += `<tr><td>${d.careQuality}</td><td>${d.waitTime}</td><td>${d.staffFriendliness}</td><td>${d.recommendClinic}</td><td>${d.additionalComments || ''}</td><td>${d.contactInfo || ''}</td><td>${new Date(d.submittedAt?.seconds * 1000).toLocaleString()}</td></tr>`;
+      const careChart = new Chart(document.getElementById("careChart"), {
+        type: 'pie',
+        data: { labels: Object.keys(careMap), datasets: [{ data: [], backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545'] }] },
+        options: { plugins: { datalabels: { formatter: (v) => v + '%', color: '#fff' } } },
+        plugins: [ChartDataLabels]
+      });
+      const waitChart = new Chart(document.getElementById("waitChart"), {
+        type: 'bar',
+        data: { labels: Object.keys(waitMap), datasets: [{ label: 'Wait Time', data: [], backgroundColor: '#17a2b8' }] },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => v + '%' } } },
+        plugins: [ChartDataLabels]
+      });
+      const friendChart = new Chart(document.getElementById("friendChart"), {
+        type: 'bar',
+        data: { labels: Object.keys(friendMap), datasets: [{ label: 'Friendliness', data: [], backgroundColor: '#6f42c1' }] },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => v + '%' } } },
+        plugins: [ChartDataLabels]
+      });
+      const recommendChart = new Chart(document.getElementById("recommendChart"), {
+        type: 'doughnut',
+        data: { labels: Object.keys(recommendMap), datasets: [{ data: [], backgroundColor: ['#28a745', '#dc3545'] }] },
+        options: { plugins: { datalabels: { formatter: (v) => v + '%', color: '#fff' } } },
+        plugins: [ChartDataLabels]
       });
 
-      document.getElementById("totalCount").textContent = total;
-      document.getElementById("recommendCount").textContent = recommend;
-      document.getElementById("excellentCount").textContent = excellent;
+      async function loadData() {
+        const tableBody = document.getElementById("feedbackTableBody");
+        const commentList = document.getElementById("commentList");
+        const alertBox = document.getElementById("alertBox");
 
-      careChart.data.datasets[0].data = Object.values(careMap);
-      waitChart.data.datasets[0].data = Object.values(waitMap);
-      friendChart.data.datasets[0].data = Object.values(friendMap);
-      recommendChart.data.datasets[0].data = Object.values(recommendMap);
+        const snapshot = await db.collection("clinic_feedback").get();
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          total++;
+          if (d.recommendClinic === "Yes") recommend++;
+          if (d.careQuality === "Excellent") excellent++;
+          if (d.recommendClinic === "No") alertBox.classList.remove("d-none");
 
-      careChart.update(); waitChart.update(); friendChart.update(); recommendChart.update();
-    }
+          careMap[d.careQuality]++;
+          waitMap[d.waitTime]++;
+          friendMap[d.staffFriendliness]++;
+          recommendMap[d.recommendClinic]++;
 
-    document.getElementById("loginBtn").onclick = async () => {
-      const email = document.getElementById("loginEmail").value;
-      const pass = document.getElementById("loginPass").value;
-      try {
-        await auth.signInWithEmailAndPassword(email, pass);
-        document.getElementById("loginSection").style.display = "none";
-        document.getElementById("dashboardSection").style.display = "block";
-        loadData();
-      } catch (err) {
-        document.getElementById("loginError").textContent = err.message;
+          if (d.additionalComments) commentList.innerHTML += `<p><strong>${d.careQuality}</strong>: ${d.additionalComments}</p>`;
+
+          tableBody.innerHTML += `<tr><td>${d.careQuality}</td><td>${d.waitTime}</td><td>${d.staffFriendliness}</td><td>${d.recommendClinic}</td><td>${d.additionalComments || ''}</td><td>${d.contactInfo || ''}</td><td>${new Date(d.submittedAt?.seconds * 1000).toLocaleString()}</td></tr>`;
+        });
+
+        document.getElementById("totalCount").textContent = total;
+        document.getElementById("recommendCount").textContent = recommend;
+        document.getElementById("excellentCount").textContent = excellent;
+
+        careChart.data.datasets[0].data = Object.values(careMap);
+        waitChart.data.datasets[0].data = Object.values(waitMap);
+        friendChart.data.datasets[0].data = Object.values(friendMap);
+        recommendChart.data.datasets[0].data = Object.values(recommendMap);
+
+        careChart.update(); waitChart.update(); friendChart.update(); recommendChart.update();
       }
+
+      document.getElementById("loginSection").style.display = "block";
+      document.getElementById("loginBtn").onclick = async () => {
+        const email = document.getElementById("loginEmail").value;
+        const pass = document.getElementById("loginPass").value;
+        try {
+          await auth.signInWithEmailAndPassword(email, pass);
+          document.getElementById("loginSection").style.display = "none";
+          document.getElementById("dashboardSection").style.display = "block";
+          loadData();
+        } catch (err) {
+          document.getElementById("loginError").textContent = err.message;
+        }
+      };
     };
   </script>
 </body>
