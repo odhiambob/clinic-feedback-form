@@ -80,11 +80,12 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  <!-- Firebase SDKs (non-module version) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
       authDomain: "chambua-feedback-system.firebaseapp.com",
@@ -94,12 +95,11 @@
       appId: "1:440404138384:web:8f971a343eb6e467e23b15"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    // Sign in anonymously so we meet the Firestore security rule
-    signInAnonymously(auth).catch((error) => {
+    auth.signInAnonymously().catch((error) => {
       console.error("Anonymous auth failed:", error);
     });
 
@@ -116,11 +116,11 @@
         recommendClinic: document.getElementById("recommendClinic").value,
         additionalComments: document.getElementById("additionalComments").value,
         contactInfo: document.getElementById("contactInfo").value,
-        submittedAt: serverTimestamp()
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
 
       try {
-        await addDoc(collection(db, "clinic_feedback"), formData);
+        await db.collection("clinic_feedback").add(formData);
         form.style.display = "none";
         thankYou.style.display = "block";
       } catch (error) {
