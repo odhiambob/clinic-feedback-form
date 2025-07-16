@@ -5,141 +5,154 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chambua Clinic Dashboard</title>
 
-  <!-- AdminLTE & Chart.js -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
   <style>
-    .card-title { font-size: 1rem; }
-    .comment-box {
-      border-bottom: 1px solid #dee2e6;
-      padding: 10px 0;
-    }
-    .comment-meta {
-      font-size: 0.85rem;
-      color: #6c757d;
-    }
-    .comment-text {
-      font-size: 1rem;
-    }
-    #datePicker {
-      margin: 10px 0;
-      padding: 4px 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
+    body { background-color: #f4f6f9; }
+    .chart-card canvas { height: 200px !important; }
+    #loginSection, #dashboardSection { display: none; }
   </style>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
-  <div class="content-wrapper p-4">
-    <section class="content-header">
-      <div class="container-fluid d-flex flex-column align-items-center">
-        <h3 class="text-dark text-center mb-2">📊 Chambua Clinic Feedback Dashboard</h3>
-        <input type="date" id="datePicker" />
-        <div id="alertBox" class="alert alert-danger mt-2" style="display:none;">
-          ⚠️ Alert: A client indicated they would <strong>not recommend</strong> the clinic.
-        </div>
-      </div>
-    </section>
+<body>
+  <div class="container py-4">
+    <!-- Login -->
+    <div id="loginSection" class="text-center">
+      <h3 class="mb-3">Clinic Admin Login</h3>
+      <input id="loginEmail" class="form-control mb-2" type="email" placeholder="Email">
+      <input id="loginPass" class="form-control mb-2" type="password" placeholder="Password">
+      <button id="loginBtn" class="btn btn-primary">Login</button>
+      <p class="text-danger mt-2" id="loginError"></p>
+    </div>
 
-    <!-- KPI boxes -->
-    <section class="content">
+    <!-- Dashboard -->
+    <div id="dashboardSection">
+      <h2 class="text-center text-primary mb-4">📊 Chambua Clinic Feedback Dashboard</h2>
+      <div id="alertBox" class="alert alert-danger d-none">⚠️ A client selected "No" to recommending the clinic!</div>
+
+      <div class="row text-white mb-3">
+        <div class="col-md-4"><div class="bg-info p-3 rounded"><h4>Total Submissions</h4><h2 id="totalCount">0</h2></div></div>
+        <div class="col-md-4"><div class="bg-success p-3 rounded"><h4>Would Recommend</h4><h2 id="recommendCount">0</h2></div></div>
+        <div class="col-md-4"><div class="bg-warning p-3 rounded"><h4>Excellent Care</h4><h2 id="excellentCount">0</h2></div></div>
+      </div>
+
       <div class="row">
-        <div class="col-lg-4 col-6">
-          <div class="small-box bg-info">
-            <div class="inner">
-              <h3 id="totalCount">0</h3>
-              <p>Total Submissions</p>
-            </div>
-            <div class="icon"><i class="fas fa-clipboard-list"></i></div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-6">
-          <div class="small-box bg-success">
-            <div class="inner">
-              <h3 id="recommendCount">0</h3>
-              <p>Would Recommend</p>
-            </div>
-            <div class="icon"><i class="fas fa-thumbs-up"></i></div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-6">
-          <div class="small-box bg-warning">
-            <div class="inner">
-              <h3 id="excellentCount">0</h3>
-              <p>Excellent Care</p>
-            </div>
-            <div class="icon"><i class="fas fa-star"></i></div>
-          </div>
-        </div>
+        <div class="col-md-3 chart-card"><canvas id="careChart"></canvas></div>
+        <div class="col-md-3 chart-card"><canvas id="waitChart"></canvas></div>
+        <div class="col-md-3 chart-card"><canvas id="friendChart"></canvas></div>
+        <div class="col-md-3 chart-card"><canvas id="recommendChart"></canvas></div>
       </div>
 
-      <!-- Charts -->
-      <div class="row">
-        <div class="col-md-3">
-          <div class="card card-primary">
-            <div class="card-header"><h3 class="card-title">Care Quality</h3></div>
-            <div class="card-body"><canvas id="careChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card card-info">
-            <div class="card-header"><h3 class="card-title">Wait Time</h3></div>
-            <div class="card-body"><canvas id="waitChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card card-purple">
-            <div class="card-header"><h3 class="card-title">Staff Friendliness</h3></div>
-            <div class="card-body"><canvas id="friendChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card card-success">
-            <div class="card-header"><h3 class="card-title">Would Recommend?</h3></div>
-            <div class="card-body"><canvas id="recommendChart"></canvas></div>
-          </div>
-        </div>
+      <div class="card mt-4">
+        <div class="card-header bg-dark text-white">Client Comments</div>
+        <div class="card-body" id="commentList"></div>
       </div>
 
-      <!-- Comments Section -->
-      <div class="card card-secondary">
-        <div class="card-header"><h3 class="card-title">Client Comments & Suggestions</h3></div>
-        <div class="card-body" style="max-height: 300px; overflow-y: auto;" id="commentList"></div>
+      <div class="table-responsive mt-4">
+        <table class="table table-bordered table-sm">
+          <thead class="table-light">
+            <tr><th>Care</th><th>Wait</th><th>Friendliness</th><th>Recommend?</th><th>Comment</th><th>Contact</th><th>Time</th></tr>
+          </thead>
+          <tbody id="feedbackTableBody"></tbody>
+        </table>
       </div>
-
-      <!-- Table -->
-      <div class="card card-outline card-dark">
-        <div class="card-header">
-          <h3 class="card-title">All Feedback (Raw View)</h3>
-        </div>
-        <div class="card-body table-responsive">
-          <table class="table table-bordered table-sm">
-            <thead><tr>
-              <th>Care Quality</th><th>Wait Time</th><th>Friendliness</th><th>Recommend?</th>
-              <th>Comment</th><th>Contact</th><th>Submitted At</th>
-            </tr></thead>
-            <tbody id="feedbackTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+    </div>
   </div>
-</div>
 
-<script>
-  const careChartCtx = document.getElementById("careChart");
-  const waitChartCtx = document.getElementById("waitChart");
-  const friendChartCtx = document.getElementById("friendChart");
-  const recommendChartCtx = document.getElementById("recommendChart");
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
+      authDomain: "chambua-feedback-system.firebaseapp.com",
+      projectId: "chambua-feedback-system"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-  const careChart = new Chart(careChartCtx, { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] }, options: {} });
-  const waitChart = new Chart(waitChartCtx, { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] }, options: {} });
-  const friendChart = new Chart(friendChartCtx, { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] }, options: {} });
-  const recommendChart = new Chart(recommendChartCtx, { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] }, options: {} });
-</script>
+    const careMap = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
+    const waitMap = { "Less than 15 minutes": 0, "15–30 minutes": 0, "More than 30 minutes": 0 };
+    const friendMap = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
+    const recommendMap = { Yes: 0, No: 0 };
+
+    let total = 0, recommend = 0, excellent = 0;
+
+    const careChart = new Chart(document.getElementById("careChart"), {
+      type: 'pie',
+      data: { labels: Object.keys(careMap), datasets: [{ data: [], backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545'] }] },
+      options: { plugins: { datalabels: { formatter: (v, ctx) => v + '%', color: '#fff' } } },
+      plugins: [ChartDataLabels]
+    });
+    const waitChart = new Chart(document.getElementById("waitChart"), {
+      type: 'bar',
+      data: { labels: Object.keys(waitMap), datasets: [{ label: 'Wait Time', data: [], backgroundColor: '#17a2b8' }] },
+      options: { scales: { y: { beginAtZero: true } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => v + '%' } } },
+      plugins: [ChartDataLabels]
+    });
+    const friendChart = new Chart(document.getElementById("friendChart"), {
+      type: 'bar',
+      data: { labels: Object.keys(friendMap), datasets: [{ label: 'Friendliness', data: [], backgroundColor: '#6f42c1' }] },
+      options: { scales: { y: { beginAtZero: true } }, plugins: { datalabels: { anchor: 'end', align: 'top', formatter: (v) => v + '%' } } },
+      plugins: [ChartDataLabels]
+    });
+    const recommendChart = new Chart(document.getElementById("recommendChart"), {
+      type: 'doughnut',
+      data: { labels: Object.keys(recommendMap), datasets: [{ data: [], backgroundColor: ['#28a745', '#dc3545'] }] },
+      options: { plugins: { datalabels: { formatter: (v) => v + '%', color: '#fff' } } },
+      plugins: [ChartDataLabels]
+    });
+
+    async function loadData() {
+      const tableBody = document.getElementById("feedbackTableBody");
+      const commentList = document.getElementById("commentList");
+      const alertBox = document.getElementById("alertBox");
+
+      const snapshot = await db.collection("clinic_feedback").get();
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        total++;
+        if (d.recommendClinic === "Yes") recommend++;
+        if (d.careQuality === "Excellent") excellent++;
+        if (d.recommendClinic === "No") alertBox.classList.remove("d-none");
+
+        careMap[d.careQuality]++;
+        waitMap[d.waitTime]++;
+        friendMap[d.staffFriendliness]++;
+        recommendMap[d.recommendClinic]++;
+
+        if (d.additionalComments) commentList.innerHTML += `<p><strong>${d.careQuality}</strong>: ${d.additionalComments}</p>`;
+
+        tableBody.innerHTML += `<tr><td>${d.careQuality}</td><td>${d.waitTime}</td><td>${d.staffFriendliness}</td><td>${d.recommendClinic}</td><td>${d.additionalComments || ''}</td><td>${d.contactInfo || ''}</td><td>${new Date(d.submittedAt?.seconds * 1000).toLocaleString()}</td></tr>`;
+      });
+
+      document.getElementById("totalCount").textContent = total;
+      document.getElementById("recommendCount").textContent = recommend;
+      document.getElementById("excellentCount").textContent = excellent;
+
+      careChart.data.datasets[0].data = Object.values(careMap);
+      waitChart.data.datasets[0].data = Object.values(waitMap);
+      friendChart.data.datasets[0].data = Object.values(friendMap);
+      recommendChart.data.datasets[0].data = Object.values(recommendMap);
+
+      careChart.update(); waitChart.update(); friendChart.update(); recommendChart.update();
+    }
+
+    document.getElementById("loginBtn").onclick = async () => {
+      const email = document.getElementById("loginEmail").value;
+      const pass = document.getElementById("loginPass").value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("dashboardSection").style.display = "block";
+        loadData();
+      } catch (err) {
+        document.getElementById("loginError").textContent = err.message;
+      }
+    };
+  </script>
 </body>
 </html>
