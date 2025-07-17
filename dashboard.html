@@ -332,18 +332,25 @@
       recommendClinic: ["#28a745", "#dc3545"]
     };
 
-    // Update all pie charts
-    const updateChart = (chartRef, canvasId, labels, counts, colors) => {
+    // Updated: Reusable updateChart function
+    const updateChart = (refName, canvasId, labels, counts, colors) => {
       const values = piePercentages(counts);
-      const ctx = document.getElementById(canvasId).getContext("2d");
-      if (window[canvasId]) window[canvasId].destroy();
-      window[canvasId] = createPieChart(ctx, labels, values, colors);
+      const ctx = document.getElementById(canvasId)?.getContext("2d");
+      if (!ctx) return;
+
+      // Destroy old chart if it exists
+      if (refName && typeof refName.destroy === "function") {
+        refName.destroy();
+      }
+
+      const newChart = createPieChart(ctx, labels, values, colors);
+      return newChart;
     };
 
-    updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
-    updateChart(waitTimeChart, "waitTimeChart", labelsMap.waitTime, countBy(data, "waitTime"), colorsMap.waitTime);
-    updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
-    updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic);
+    careChart = updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
+    waitTimeChart = updateChart(waitTimeChart, "waitTimeChart", labelsMap.waitTime, countBy(data, "waitTime"), colorsMap.waitTime);
+    friendlinessChart = updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
+    recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic);
 
     // Display comments
     const commentsEl = document.getElementById("commentsSection");
@@ -385,8 +392,12 @@
     recommendClinic: ["Yes", "No"]
   };
 
-  // Initialize dropdown filter
-  const trendSelect = document.getElementById("trendVariable");
+  // Recreate checklist UI safely
+  const trendSelect = document.createElement("select");
+  trendSelect.id = "trendVariable";
+  trendSelect.classList.add("form-control", "w-auto", "mx-2");
+  document.getElementById("variableFilter").appendChild(trendSelect);
+
   trendVariables.forEach(v => {
     const opt = document.createElement("option");
     opt.value = v;
@@ -394,17 +405,18 @@
     trendSelect.appendChild(opt);
   });
 
-  // Default selection
   trendSelect.value = "recommendClinic";
+
+  let trendBarChart = null;
 
   async function updateTrendChart() {
     const variable = trendSelect.value;
-
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
 
-    const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const formatDate = (d) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     const fetchByDate = async (dateStr) => {
       const start = new Date(dateStr + "T00:00:00");
@@ -430,11 +442,15 @@
     const yesterdayCounts = countBy(dataYesterday, variable);
     const todayCounts = countBy(dataToday, variable);
 
-    // Clean up old chart
-    if (window.trendBarChart) window.trendBarChart.destroy();
+    const ctx = document.getElementById("trendChart")?.getContext("2d");
+    if (!ctx) return;
 
-    const ctx = document.getElementById("trendChart").getContext("2d");
-    window.trendBarChart = new Chart(ctx, {
+    // Clean up old chart safely
+    if (trendBarChart && typeof trendBarChart.destroy === "function") {
+      trendBarChart.destroy();
+    }
+
+    trendBarChart = new Chart(ctx, {
       type: "bar",
       data: {
         labels: trendLabels[variable],
@@ -457,7 +473,7 @@
           legend: { position: 'top' },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const value = context.raw;
                 return `${context.dataset.label}: ${value}`;
               }
@@ -468,26 +484,131 @@
           y: { beginAtZero: true, display: false },
           x: {
             ticks: {
-              callback: function(label) {
+              callback: function (label) {
                 return trendLabels[variable][label];
               }
             }
-          }
-        },
-        plugins: {
-          datalabels: {
-            anchor: 'end',
-            align: 'top',
-            formatter: (value) => value + '%',
           }
         }
       }
     });
   }
 
-  document.getElementById("trendVariable").addEventListener("change", updateTrendChart);
-
-  // Initial load
-  updateTrendChart();
+  trendSelect.addEventListener("change", updateTrendChart);
+  updateTrendChart(); // Initial load
 </script>
+
+<!-- ✅ Part 6 of dashboard.html: Export Charts to PNG and PDF -->
+<!-- Export libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  function exportChartAsPNG(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const image = canvas.toDataURL("image/png", 1.0);
+    const link = document.createElement("a");
+    link.href = image;
+    link.download = canvasId + ".png";
+    link.click();
+  }
+
+  async function exportChartAsPDF(canvasId, title = "Chart Export") {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const image = canvas.toDataURL("image/png", 1.0);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    pdf.text(title, 15, 10);
+    pdf.addImage(image, "PNG", 15, 20, 180, 100);
+    pdf.save(canvasId + ".pdf");
+  }
+</script>
+
+<script>
+  // Add export buttons dynamically after charts load
+  function addExportButtons() {
+    const charts = [
+      { id: "careChart", title: "Care Quality" },
+      { id: "waitTimeChart", title: "Wait Time" },
+      { id: "friendlinessChart", title: "Friendliness" },
+      { id: "recommendChart", title: "Would Recommend" },
+      { id: "trendChart", title: "Trends" }
+    ];
+
+    charts.forEach(({ id, title }) => {
+      const canvas = document.getElementById(id);
+      if (canvas && !document.getElementById(id + "_export")) {
+        const btns = document.createElement("div");
+        btns.id = id + "_export";
+        btns.className = "mt-2 text-center";
+        btns.innerHTML = `
+          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPNG('${id}')">Export PNG</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPDF('${id}', '${title}')">Export PDF</button>
+        `;
+        canvas.parentElement.appendChild(btns);
+      }
+    });
+  }
+
+  // Attach export buttons after charts are drawn
+  setTimeout(addExportButtons, 3000); // Adjust if needed after testing
+</script>
+
+<!-- ✅ Part 7 of dashboard.html: Export ALL Charts at Once -->
+<script>
+  async function exportAllChartsAsPDF() {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    const charts = [
+      { id: "careChart", title: "Care Quality" },
+      { id: "waitTimeChart", title: "Wait Time" },
+      { id: "friendlinessChart", title: "Friendliness" },
+      { id: "recommendChart", title: "Would Recommend" },
+      { id: "trendChart", title: "Trends Over Time" }
+    ];
+
+    for (let i = 0; i < charts.length; i++) {
+      const { id, title } = charts[i];
+      const canvas = document.getElementById(id);
+      if (!canvas) continue;
+
+      const imgData = canvas.toDataURL("image/png", 1.0);
+      if (i > 0) pdf.addPage();
+      pdf.text(title, 15, 10);
+      pdf.addImage(imgData, "PNG", 15, 20, 180, 100);
+    }
+
+    pdf.save("Clinic_Feedback_Charts.pdf");
+  }
+
+  function exportAllChartsAsPNGs() {
+    const charts = [
+      { id: "careChart", title: "Care_Quality" },
+      { id: "waitTimeChart", title: "Wait_Time" },
+      { id: "friendlinessChart", title: "Friendliness" },
+      { id: "recommendChart", title: "Would_Recommend" },
+      { id: "trendChart", title: "Trends" }
+    ];
+
+    charts.forEach(({ id, title }) => {
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      const image = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `${title}.png`;
+      link.click();
+    });
+  }
+</script>
+
+<!-- 📌 Export All Buttons (place this somewhere visible, e.g. below KPI cards or header) -->
+<div class="text-center mt-4">
+  <button class="btn btn-outline-primary mx-1" onclick="exportAllChartsAsPDF()">📄 Export All as PDF</button>
+  <button class="btn btn-outline-success mx-1" onclick="exportAllChartsAsPNGs()">🖼️ Export All as PNGs</button>
+</div>
+
 
