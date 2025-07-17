@@ -3,7 +3,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
-<!-- ✅ Part 1 of dashboard.html: Head, Styles, and Firebase Config -->
+<!-- ✅ Part 1 of dashboard.html: Head, Styles, Chart.js, Firebase SDKs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,14 +11,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chambua Clinic Feedback Dashboard</title>
 
-  <!-- Bootstrap + Chart.js -->
+  <!-- Bootstrap + jQuery -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
 
-  <!-- ✅ ChartDataLabels Plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <!-- ✅ Chart.js + Compatible Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -89,6 +89,7 @@
     }
   </style>
 </head>
+
 
 
 <!-- ✅ Part 2 of dashboard.html: Body, Sidebar, Tabs, 2x2 Pie Layout + Export Buttons -->
@@ -422,8 +423,15 @@
 </script>
 
 
-<!-- ✅ Updated Part 5: Trend chart with real dates and smaller height -->
+<!-- ✅ Part 5: Trends Chart with Grouped Bars + Trend Lines + Export Buttons -->
 <script>
+  const trendVariables = ["careQuality", "waitTime", "staffFriendliness", "recommendClinic"];
+  const trendColors = {
+    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
+    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
+    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
+    recommendClinic: ["#28a745", "#dc3545"]
+  };
   const trendLabels = {
     careQuality: ["Excellent", "Good", "Average", "Poor"],
     waitTime: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
@@ -431,82 +439,93 @@
     recommendClinic: ["Yes", "No"]
   };
 
-  const trendColors = {
-    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
-    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
-    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
-    recommendClinic: ["#28a745", "#dc3545"]
-  };
-
   const trendSelect = document.getElementById("trendVariable");
   trendSelect.innerHTML = "";
-  for (const v in trendLabels) {
+  trendVariables.forEach(v => {
     const opt = document.createElement("option");
     opt.value = v;
     opt.textContent = v.replace(/([A-Z])/g, ' $1').trim();
     trendSelect.appendChild(opt);
-  }
+  });
 
   let trendBarChart = null;
 
   async function updateTrendChart() {
     const variable = trendSelect.value;
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
+    const startDate = new Date(document.getElementById("startDate").value);
+    const endDate = new Date(document.getElementById("endDate").value);
+    if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) return;
+
+    const allDates = [];
+    const curr = new Date(startDate);
+    while (curr <= endDate) {
+      allDates.push(new Date(curr));
+      curr.setDate(curr.getDate() + 1);
+    }
 
     const formatDate = (d) =>
-      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear().toString().slice(-2)}`;
+      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}`;
 
-    const fetchByDate = async (date) => {
+    const fetchDataForDate = async (date) => {
       const start = new Date(date);
       start.setHours(0, 0, 0, 0);
       const end = new Date(date);
       end.setHours(23, 59, 59, 999);
-
       const snap = await db.collection("clinic_feedback")
         .where("submittedAt", ">=", start)
         .where("submittedAt", "<=", end)
         .get();
-
       return snap.docs.map(d => d.data());
     };
 
-    const dataToday = await fetchByDate(today);
-    const dataYesterday = await fetchByDate(yesterday);
-
-    const countBy = (data, key) => {
-      return trendLabels[key].map(label =>
-        data.filter(d => d[key] === label).length
+    const countsPerDate = [];
+    for (const date of allDates) {
+      const raw = await fetchDataForDate(date);
+      const total = raw.length || 1;
+      const labelSet = trendLabels[variable];
+      const dailyCounts = labelSet.map(label =>
+        Math.round((raw.filter(d => d[variable] === label).length / total) * 100)
       );
-    };
+      countsPerDate.push(dailyCounts);
+    }
 
-    const yesterdayCounts = countBy(dataYesterday, variable);
-    const todayCounts = countBy(dataToday, variable);
+    const labels = trendLabels[variable];
+    const datasets = [];
+
+    labels.forEach((label, i) => {
+      const color = trendColors[variable][i];
+
+      datasets.push({
+        type: 'bar',
+        label: label,
+        data: countsPerDate.map(day => day[i]),
+        backgroundColor: color,
+        stack: 'Grouped'
+      });
+
+      datasets.push({
+        type: 'line',
+        label: label + ' Trend',
+        data: countsPerDate.map(day => day[i]),
+        borderColor: color,
+        backgroundColor: color,
+        fill: false,
+        borderWidth: 2,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 5
+      });
+    });
 
     const ctx = document.getElementById("trendChart")?.getContext("2d");
     if (!ctx) return;
-
-    if (trendBarChart && typeof trendBarChart.destroy === "function") {
-      trendBarChart.destroy();
-    }
+    if (trendBarChart && typeof trendBarChart.destroy === "function") trendBarChart.destroy();
 
     trendBarChart = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: trendLabels[variable],
-        datasets: [
-          {
-            label: formatDate(yesterday),
-            data: yesterdayCounts,
-            backgroundColor: trendColors[variable]
-          },
-          {
-            label: formatDate(today),
-            data: todayCounts,
-            backgroundColor: trendColors[variable].map(c => c + "88")
-          }
-        ]
+        labels: allDates.map(formatDate),
+        datasets: datasets
       },
       options: {
         responsive: true,
@@ -514,22 +533,47 @@
         plugins: {
           legend: { position: "top" },
           tooltip: {
+            mode: 'index',
+            intersect: false,
             callbacks: {
-              label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}`
+              label: function(ctx) {
+                return `${ctx.dataset.label}: ${ctx.raw}%`;
+              }
             }
           }
         },
         scales: {
-          y: { beginAtZero: true },
-          x: { stacked: false }
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              callback: function(value) { return value + "%"; }
+            },
+            scaleLabel: {
+              display: true,
+              labelString: "Percentage"
+            }
+          }],
+          xAxes: [{
+            stacked: false,
+            barPercentage: 0.5,
+            categoryPercentage: 0.5
+          }]
         }
       }
     });
   }
 
-  trendSelect.addEventListener("change", updateTrendChart);
+  document.getElementById("trendVariable").addEventListener("change", updateTrendChart);
+  document.getElementById("startDate").addEventListener("change", updateTrendChart);
+  document.getElementById("endDate").addEventListener("change", updateTrendChart);
+
+  function filterTrends() {
+    updateTrendChart();
+  }
+
   updateTrendChart();
 </script>
+
 
 
 <!-- ✅ Part 6 of dashboard.html: Export Charts to PNG and PDF -->
@@ -561,35 +605,6 @@
   }
 </script>
 
-<script>
-  // Add export buttons dynamically after charts load
-  function addExportButtons() {
-    const charts = [
-      { id: "careChart", title: "Care Quality" },
-      { id: "waitTimeChart", title: "Wait Time" },
-      { id: "friendlinessChart", title: "Friendliness" },
-      { id: "recommendChart", title: "Would Recommend" },
-      { id: "trendChart", title: "Trends" }
-    ];
-
-    charts.forEach(({ id, title }) => {
-      const canvas = document.getElementById(id);
-      if (canvas && !document.getElementById(id + "_export")) {
-        const btns = document.createElement("div");
-        btns.id = id + "_export";
-        btns.className = "mt-2 text-center";
-        btns.innerHTML = `
-          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPNG('${id}')">Export PNG</button>
-          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPDF('${id}', '${title}')">Export PDF</button>
-        `;
-        canvas.parentElement.appendChild(btns);
-      }
-    });
-  }
-
-  // Attach export buttons after charts are drawn
-  setTimeout(addExportButtons, 3000); // Adjust if needed after testing
-</script>
 
 <!-- ✅ Part 7 of dashboard.html: Export ALL Charts at Once -->
 <script>
