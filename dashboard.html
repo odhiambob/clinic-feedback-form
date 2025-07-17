@@ -4,7 +4,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
 
 
-<!-- ✅ Part 1 of dashboard.html: Full <head> including styles and Firebase SDKs -->
+<!-- ✅ Part 1 of dashboard.html: Full <head> with Firebase, Bootstrap, and CSS fixes -->
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -22,7 +22,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   
-    <!-- ✅ Custom Styles (including fix for strikethrough) -->
+    <!-- ✅ Styles for layout, KPIs, pie charts, and legend fix -->
     <style>
       body {
         font-family: 'Segoe UI', sans-serif;
@@ -76,6 +76,7 @@
         border-left: 5px solid #17a2b8;
         margin-bottom: 10px;
         background-color: white;
+        border-radius: 4px;
       }
   
       .dashboard-header {
@@ -98,7 +99,7 @@
         text-anchor: middle;
       }
   
-      /* ✅ Fix for strikethrough on chart legends */
+      /* ✅ Force-remove any legend strikethrough just in case */
       .chartjs-legend li span,
       .chartjs-legend li,
       .chart-legend li,
@@ -107,6 +108,7 @@
       }
     </style>
   </head>
+  
 
 
 <!-- ✅ Part 2 of dashboard.html: Body, Sidebar, Tabs, 2x2 Pie Layout + Export Buttons -->
