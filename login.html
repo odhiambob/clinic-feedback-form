@@ -1,0 +1,115 @@
+<!-- ✅ Part 1 of login: HTML Header and Firebase setup -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login - Chambua Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <style>
+    body {
+      background-color: #f2f4f8;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-box {
+      max-width: 400px;
+      margin: 80px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .firebase-error {
+      color: red;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+
+    .btn-google {
+      background-color: #dd4b39;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ✅ Part 2 of login: Login form UI + Firebase config -->
+<div class="login-box">
+    <h3 class="text-center text-primary mb-4">Chambua Admin Login</h3>
+  
+    <!-- Email/Password Login -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" class="form-control" id="email" required placeholder="Enter email" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" class="form-control" id="password" required placeholder="Enter password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
+  
+    <div class="text-center my-3">— OR —</div>
+  
+    <!-- Google Sign-in -->
+    <button id="googleLogin" class="btn btn-google btn-block">Login with Google</button>
+  
+    <div id="errorMessage" class="firebase-error text-center"></div>
+  </div>
+  
+  <script>
+    // ✅ Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
+      authDomain: "chambua-feedback-system.firebaseapp.com",
+      projectId: "chambua-feedback-system",
+      storageBucket: "chambua-feedback-system.appspot.com",
+      messagingSenderId: "440404138384",
+      appId: "1:440404138384:web:8f971a343eb6e467e23b15"
+    };
+  
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+  </script>
+  
+  <!-- ✅ Part 3 of login: Login logic for email/password and Google sign-in -->
+<script>
+    // Handle email/password login
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+  
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = "dashboard.html"; // Redirect to dashboard after login
+        })
+        .catch((error) => {
+          document.getElementById("errorMessage").textContent = error.message;
+        });
+    });
+  
+    // Handle Google login
+    document.getElementById("googleLogin").addEventListener("click", function () {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(() => {
+          window.location.href = "dashboard.html"; // Redirect to dashboard
+        })
+        .catch((error) => {
+          document.getElementById("errorMessage").textContent = error.message;
+        });
+    });
+  </script>
+  
+  </body>
+  </html>
+

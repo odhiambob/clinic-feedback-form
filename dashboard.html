@@ -1,14 +1,22 @@
+<!-- ✅ Part 1 of dashboard.html: Boilerplate and Firebase config -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chambua Clinic Feedback Dashboard</title>
+
+  <!-- Bootstrap + Chart.js -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -59,28 +67,44 @@
       text-align: center;
       margin-bottom: 20px;
     }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    .bar-label {
+      font-size: 14px;
+      font-weight: bold;
+      fill: white;
+      text-anchor: middle;
+    }
   </style>
 </head>
+
+<!-- ✅ Part 2 of dashboard.html: Body, Sidebar, and Tabs -->
 <body>
-<!-- Sidebar -->
-<div class="sidebar">
-  <h5 class="text-center mb-4">📊 Chambua Dashboard</h5>
-  <a href="#" class="active" onclick="showTab('dashboardTab', this)">Dashboard</a>
-  <a href="#" onclick="showTab('trendTab', this)">Trends</a>
-  <a href="#" onclick="logout()">Logout</a>
-</div>
 
-<!-- Main Content -->
-<div class="main">
-  <div class="dashboard-header">
-    <h2>Clinic Feedback Summary</h2>
-    <input type="date" id="dateFilter" class="form-control w-auto mx-auto" />
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h5 class="text-center mb-4">📊 Chambua Dashboard</h5>
+    <a href="#" class="active" onclick="showTab('dashboardTab')">Dashboard</a>
+    <a href="#" onclick="showTab('trendTab')">Trends</a>
+    <a href="#" onclick="logout()">Logout</a>
   </div>
+  
+  <!-- Main Content -->
+  <div class="main">
+    <div class="dashboard-header">
+      <h2>Clinic Feedback Summary</h2>
+      <p>Showing results for: <span id="currentDateLabel"></span></p>
+      <input type="date" id="dateFilter" class="form-control w-auto mx-auto"/>
+    </div>
+  
+    <!-- Tabs Start -->
+    <div id="dashboardTab" class="tab-pane active">
 
-  <!-- Dashboard Tab -->
-  <div id="dashboardTab" class="tab-pane active">
+    <!-- KPI Cards -->
     <div class="row">
       <div class="col-md-4">
         <div class="kpi-box kpi-blue">
@@ -101,72 +125,88 @@
         </div>
       </div>
     </div>
+
+    <!-- Feedback Charts -->
     <div class="row mt-4">
       <div class="col-md-3">
         <div class="card">
           <div class="card-header bg-primary text-white">Care Quality</div>
-          <div class="card-body"><canvas id="careChart"></canvas></div>
+          <div class="card-body">
+            <canvas id="careChart"></canvas>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card">
           <div class="card-header bg-info text-white">Wait Time</div>
-          <div class="card-body"><canvas id="waitTimeChart"></canvas></div>
+          <div class="card-body">
+            <canvas id="waitTimeChart"></canvas>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card">
-          <div class="card-header bg-purple text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
-          <div class="card-body"><canvas id="friendlinessChart"></canvas></div>
+          <div class="card-header text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
+          <div class="card-body">
+            <canvas id="friendlinessChart"></canvas>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card">
           <div class="card-header bg-success text-white">Would Recommend?</div>
-          <div class="card-body"><canvas id="recommendChart"></canvas></div>
+          <div class="card-body">
+            <canvas id="recommendChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- Comments Section -->
     <div class="card mt-4">
       <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
       <div class="card-body" id="commentsSection">
-        <div class="comment-card">Loading...</div>
+        <!-- Comments will be dynamically added here -->
       </div>
     </div>
-  </div> <!-- End dashboardTab -->
+  </div> <!-- End Dashboard Tab -->
+
   <!-- Trends Tab -->
   <div id="trendTab" class="tab-pane">
     <h4>Feedback Trends</h4>
-    <p>Select variables and time range to view how feedback changes over time.</p>
+    <p>Select a date range and variables to analyze trends over time.</p>
 
     <div class="form-inline mb-3">
-      <label class="mr-2">Start:</label>
-      <input type="date" id="startDate" class="form-control mr-3"/>
-      <label class="mr-2">End:</label>
-      <input type="date" id="endDate" class="form-control mr-3"/>
-
-      <label class="mr-2">Variable:</label>
-      <select id="trendVariable" class="form-control">
-        <option value="careQuality">Care Quality</option>
-        <option value="waitTime">Wait Time</option>
-        <option value="staffFriendliness">Staff Friendliness</option>
-        <option value="recommendClinic">Would Recommend</option>
-      </select>
-
-      <button class="btn btn-primary ml-3" onclick="filterTrends()">Apply</button>
+      <label for="startDate">Start: </label>
+      <input type="date" id="startDate" class="form-control mx-2"/>
+      <label for="endDate">End: </label>
+      <input type="date" id="endDate" class="form-control mx-2"/>
+      <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
     </div>
 
-    <div>
+    <!-- Variable Checklist -->
+    <div class="form-group">
+      <label><strong>Select Variables:</strong></label>
+      <div id="variableFilter">
+        <div><input type="checkbox" class="trend-var" value="recommendClinic" checked> Would Recommend</div>
+        <div><input type="checkbox" class="trend-var" value="careQuality" checked> Care Quality</div>
+        <div><input type="checkbox" class="trend-var" value="waitTime" checked> Wait Time</div>
+        <div><input type="checkbox" class="trend-var" value="staffFriendliness" checked> Staff Friendliness</div>
+      </div>
+    </div>
+
+    <div class="mt-4">
       <canvas id="trendChart" height="100"></canvas>
     </div>
-  </div> <!-- End trendTab -->
-</div> <!-- End main -->
+  </div> <!-- End Trends Tab -->
+</div> <!-- End Main -->
+
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<!-- Part 1 of login: Firebase Config -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
@@ -179,146 +219,270 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  const auth = firebase.auth();
+</script>
 
-  const charts = {};
+<!-- Part 2 of login: Login Logic for Email/Password and Google -->
+<script>
+  // Redirect to login.html if not logged in
+  auth.onAuthStateChanged((user) => {
+    if (!user) {
+      window.location.href = "login.html";
+    }
+  });
 
-  function showTab(tabId, el) {
+  function logout() {
+    auth.signOut().then(() => {
+      window.location.href = "login.html";
+    });
+  }
+</script>
+
+<!-- Part 3 of dashboard.html: Tab Control, Date Logic, Chart References -->
+<script>
+  // Show correct tab
+  function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
-    el.classList.add('active');
+    event.target.classList.add('active');
   }
 
-  function renderPieChart(canvasId, labels, data, colors) {
-    const ctx = document.getElementById(canvasId).getContext("2d");
-    if (charts[canvasId]) charts[canvasId].destroy();
+  // Set default date to today
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("dateFilter").value = today;
+  document.getElementById("currentDateLabel").textContent = today;
 
-    charts[canvasId] = new Chart(ctx, {
+  // Chart references
+  let careChart, waitTimeChart, friendlinessChart, recommendChart, trendChart;
+
+  // Initialize all charts as empty pie charts (they’ll be updated by Firestore later)
+  function createPieChart(ctx, labels, values, colors) {
+    return new Chart(ctx, {
       type: 'pie',
       data: {
-        labels,
+        labels: labels,
         datasets: [{
-          data,
+          data: values,
           backgroundColor: colors
         }]
       },
       options: {
         responsive: true,
-        plugins: [ChartDataLabels],
         legend: { position: 'bottom' },
         plugins: {
           datalabels: {
-            formatter: (value, ctx) => {
-              let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-              let percentage = ((value / sum) * 100).toFixed(1) + "%";
-              return percentage;
-            },
+            formatter: (value, ctx) => `${value}%`,
             color: '#fff'
           }
         }
       }
     });
   }
+</script>
 
-  function updateDashboard(data) {
-    const total = data.length;
-    const recommendYes = data.filter(d => d.recommendClinic === "Yes").length;
-    const excellentCare = data.filter(d => d.careQuality === "Excellent").length;
+<!-- Part 4 of dashboard.html: Load and Update Dashboard Charts from Firestore -->
+<script>
+  // Update dashboard view based on date
+  async function updateDashboard(selectedDate) {
+    const snapshot = await db.collection("clinic_feedback")
+      .where("submittedAt", ">=", new Date(selectedDate + "T00:00:00"))
+      .where("submittedAt", "<=", new Date(selectedDate + "T23:59:59"))
+      .get();
 
-    document.getElementById("totalSubmissions").innerText = total;
-    document.getElementById("wouldRecommend").innerText = recommendYes;
-    document.getElementById("excellentCare").innerText = excellentCare;
+    const data = snapshot.docs.map(doc => doc.data());
 
-    const careCount = countBy(data, "careQuality", ['Excellent', 'Good', 'Average', 'Poor']);
-    const waitCount = countBy(data, "waitTime", ['Less than 15 minutes', '15–30 minutes', 'More than 30 minutes']);
-    const friendCount = countBy(data, "staffFriendliness", ['Excellent', 'Good', 'Average', 'Poor']);
-    const recCount = countBy(data, "recommendClinic", ['Yes', 'No']);
+    // KPI counts
+    document.getElementById("totalSubmissions").innerText = data.length;
+    document.getElementById("wouldRecommend").innerText =
+      data.filter(d => d.recommendClinic === "Yes").length;
+    document.getElementById("excellentCare").innerText =
+      data.filter(d => d.careQuality === "Excellent").length;
 
-    renderPieChart("careChart", Object.keys(careCount), Object.values(careCount), ['#28a745', '#007bff', '#ffc107', '#dc3545']);
-    renderPieChart("waitTimeChart", Object.keys(waitCount), Object.values(waitCount), ['#17a2b8', '#ffc107', '#dc3545']);
-    renderPieChart("friendlinessChart", Object.keys(friendCount), Object.values(friendCount), ['#6f42c1', '#007bff', '#ffc107', '#dc3545']);
-    renderPieChart("recommendChart", Object.keys(recCount), Object.values(recCount), ['#28a745', '#dc3545']);
+    // Build chart data
+    const countBy = (arr, key) => {
+      return arr.reduce((acc, item) => {
+        const val = item[key] || "Undefined";
+        acc[val] = (acc[val] || 0) + 1;
+        return acc;
+      }, {});
+    };
 
-    const commentContainer = document.getElementById("commentsSection");
-    commentContainer.innerHTML = "";
-    data.forEach(entry => {
-      if (entry.additionalComments)
-        commentContainer.innerHTML += `<div class="comment-card">${entry.additionalComments}</div>`;
+    const piePercentages = (counts) => {
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      return Object.keys(counts).map(k => Math.round((counts[k] / total) * 100));
+    };
+
+    const labelsMap = {
+      careQuality: ["Excellent", "Good", "Average", "Poor"],
+      waitTime: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
+      staffFriendliness: ["Excellent", "Good", "Average", "Poor"],
+      recommendClinic: ["Yes", "No"]
+    };
+
+    const colorsMap = {
+      careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
+      waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
+      staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
+      recommendClinic: ["#28a745", "#dc3545"]
+    };
+
+    // Update all pie charts
+    const updateChart = (chartRef, canvasId, labels, counts, colors) => {
+      const values = piePercentages(counts);
+      const ctx = document.getElementById(canvasId).getContext("2d");
+      if (window[canvasId]) window[canvasId].destroy();
+      window[canvasId] = createPieChart(ctx, labels, values, colors);
+    };
+
+    updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
+    updateChart(waitTimeChart, "waitTimeChart", labelsMap.waitTime, countBy(data, "waitTime"), colorsMap.waitTime);
+    updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
+    updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic);
+
+    // Display comments
+    const commentsEl = document.getElementById("commentsSection");
+    commentsEl.innerHTML = "";
+    data.forEach(d => {
+      const comment = d.additionalComments || "";
+      const rec = d.recommendClinic || "";
+      const care = d.careQuality || "";
+      const date = d.submittedAt?.toDate?.().toLocaleString?.() || "";
+      commentsEl.innerHTML += `<div class="comment-card">${comment} • ${care} • ${rec} • ${date}</div>`;
     });
   }
 
-  function countBy(data, field, categories) {
-    const counts = {};
-    categories.forEach(cat => counts[cat] = 0);
-    data.forEach(row => {
-      if (counts.hasOwnProperty(row[field])) counts[row[field]]++;
-    });
-    return counts;
-  }
+  // Trigger update on load
+  updateDashboard(today);
 
-  db.collection("clinic_feedback").orderBy("submittedAt").onSnapshot(snapshot => {
-    const allData = [];
-    snapshot.forEach(doc => allData.push(doc.data()));
-    const date = document.getElementById("dateFilter").value;
-    const filtered = date ? allData.filter(entry => entry.submittedAt && entry.submittedAt.toDate().toISOString().startsWith(date)) : allData;
-    updateDashboard(filtered);
-    window.allFeedbackData = allData; // For trend use
+  // Trigger update when date changes
+  document.getElementById("dateFilter").addEventListener("change", e => {
+    const chosen = e.target.value;
+    document.getElementById("currentDateLabel").textContent = chosen;
+    updateDashboard(chosen);
+  });
+</script>
+
+<!-- Part 5 of dashboard.html: Trends Chart with Variable Filtering -->
+<script>
+  const trendVariables = ["careQuality", "waitTime", "staffFriendliness", "recommendClinic"];
+  const trendColors = {
+    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
+    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
+    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
+    recommendClinic: ["#28a745", "#dc3545"]
+  };
+
+  const trendLabels = {
+    careQuality: ["Excellent", "Good", "Average", "Poor"],
+    waitTime: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
+    staffFriendliness: ["Excellent", "Good", "Average", "Poor"],
+    recommendClinic: ["Yes", "No"]
+  };
+
+  // Initialize dropdown filter
+  const trendSelect = document.getElementById("trendVariable");
+  trendVariables.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v.replace(/([A-Z])/g, ' $1').trim();
+    trendSelect.appendChild(opt);
   });
 
-  function filterTrends() {
-    const variable = document.getElementById("trendVariable").value;
-    const start = new Date(document.getElementById("startDate").value);
-    const end = new Date(document.getElementById("endDate").value);
-    const raw = window.allFeedbackData || [];
+  // Default selection
+  trendSelect.value = "recommendClinic";
 
-    const filtered = raw.filter(entry => {
-      if (!entry.submittedAt) return false;
-      const d = entry.submittedAt.toDate();
-      return (!isNaN(start) ? d >= start : true) && (!isNaN(end) ? d <= end : true);
-    });
+  async function updateTrendChart() {
+    const variable = trendSelect.value;
 
-    const grouped = {};
-    filtered.forEach(entry => {
-      if (!entry.submittedAt || !entry[variable]) return;
-      const dateStr = entry.submittedAt.toDate().toISOString().split("T")[0];
-      if (!grouped[dateStr]) grouped[dateStr] = {};
-      if (!grouped[dateStr][entry[variable]]) grouped[dateStr][entry[variable]] = 0;
-      grouped[dateStr][entry[variable]]++;
-    });
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
 
-    const labels = Object.keys(grouped).sort();
-    const categories = [...new Set([].concat(...Object.values(grouped).map(obj => Object.keys(obj))))];
-    const datasets = categories.map(cat => ({
-      label: cat,
-      data: labels.map(label => grouped[label][cat] || 0),
-      fill: false,
-      borderColor: getColor(cat)
-    }));
+    const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    const fetchByDate = async (dateStr) => {
+      const start = new Date(dateStr + "T00:00:00");
+      const end = new Date(dateStr + "T23:59:59");
+
+      const snap = await db.collection("clinic_feedback")
+        .where("submittedAt", ">=", start)
+        .where("submittedAt", "<=", end)
+        .get();
+
+      return snap.docs.map(d => d.data());
+    };
+
+    const dataToday = await fetchByDate(formatDate(today));
+    const dataYesterday = await fetchByDate(formatDate(yesterday));
+
+    const countBy = (data, key) => {
+      return trendLabels[key].map(label =>
+        data.filter(d => d[key] === label).length
+      );
+    };
+
+    const yesterdayCounts = countBy(dataYesterday, variable);
+    const todayCounts = countBy(dataToday, variable);
+
+    // Clean up old chart
+    if (window.trendBarChart) window.trendBarChart.destroy();
 
     const ctx = document.getElementById("trendChart").getContext("2d");
-    if (charts.trendChart) charts.trendChart.destroy();
-    charts.trendChart = new Chart(ctx, {
-      type: 'line',
-      data: { labels, datasets },
-      options: { responsive: true, title: { display: true, text: 'Trends Over Time' } }
+    window.trendBarChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: trendLabels[variable],
+        datasets: [
+          {
+            label: "Yesterday",
+            data: yesterdayCounts,
+            backgroundColor: trendColors[variable],
+          },
+          {
+            label: "Today",
+            data: todayCounts,
+            backgroundColor: trendColors[variable].map(c => c + "88"),
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                return `${context.dataset.label}: ${value}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, display: false },
+          x: {
+            ticks: {
+              callback: function(label) {
+                return trendLabels[variable][label];
+              }
+            }
+          }
+        },
+        plugins: {
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            formatter: (value) => value + '%',
+          }
+        }
+      }
     });
   }
 
-  function getColor(label) {
-    const colors = {
-      "Excellent": "#28a745",
-      "Good": "#007bff",
-      "Average": "#ffc107",
-      "Poor": "#dc3545",
-      "Yes": "#28a745",
-      "No": "#dc3545"
-    };
-    return colors[label] || '#6c757d';
-  }
+  document.getElementById("trendVariable").addEventListener("change", updateTrendChart);
 
-  function logout() {
-    window.location.href = "index.html";
-  }
+  // Initial load
+  updateTrendChart();
 </script>
-</body>
-</html>
+
