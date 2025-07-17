@@ -3,47 +3,170 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chambua Clinic Dashboard</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <title>Chambua Clinic Feedback Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background-color: #f5f7fa; }
-    .sidebar {
-      width: 220px; height: 100vh; background-color: #343a40;
-      position: fixed; top: 0; left: 0; padding-top: 20px; color: white;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f7fa;
     }
-    .sidebar a { display: block; padding: 12px 20px; color: white; text-decoration: none; }
-    .sidebar a.active, .sidebar a:hover { background-color: #495057; }
-    .main { margin-left: 220px; padding: 30px 20px; max-width: 1140px; }
-    .kpi-box { border-radius: 5px; padding: 15px; color: white; text-align: center; }
+    .sidebar {
+      width: 220px;
+      height: 100vh;
+      background-color: #343a40;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+    }
+    .sidebar a.active,
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+    .main {
+      margin-left: 220px;
+      padding: 30px 20px;
+      max-width: 1140px;
+    }
+    .kpi-box {
+      border-radius: 5px;
+      padding: 15px;
+      color: white;
+      text-align: center;
+    }
     .kpi-blue { background-color: #17a2b8; }
     .kpi-green { background-color: #28a745; }
     .kpi-yellow { background-color: #ffc107; color: #333; }
     .card-header { font-weight: bold; }
     .comment-card {
-      padding: 10px; border-left: 5px solid #17a2b8;
-      margin-bottom: 10px; background-color: white;
+      padding: 10px;
+      border-left: 5px solid #17a2b8;
+      margin-bottom: 10px;
+      background-color: white;
+    }
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 20px;
     }
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
-    #loginContainer {
-      max-width: 400px; margin: 100px auto; padding: 30px;
-      background: #fff; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-    .export-btn { float: right; margin-top: -10px; }
   </style>
 </head>
 <body>
+<!-- Sidebar -->
+<div class="sidebar">
+  <h5 class="text-center mb-4">📊 Chambua Dashboard</h5>
+  <a href="#" class="active" onclick="showTab('dashboardTab', this)">Dashboard</a>
+  <a href="#" onclick="showTab('trendTab', this)">Trends</a>
+  <a href="#" onclick="logout()">Logout</a>
+</div>
 
-<!-- Firebase Config -->
+<!-- Main Content -->
+<div class="main">
+  <div class="dashboard-header">
+    <h2>Clinic Feedback Summary</h2>
+    <input type="date" id="dateFilter" class="form-control w-auto mx-auto" />
+  </div>
+
+  <!-- Dashboard Tab -->
+  <div id="dashboardTab" class="tab-pane active">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="kpi-box kpi-blue">
+          <h2 id="totalSubmissions">0</h2>
+          <p>Total Submissions</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kpi-box kpi-green">
+          <h2 id="wouldRecommend">0</h2>
+          <p>Would Recommend</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kpi-box kpi-yellow">
+          <h2 id="excellentCare">0</h2>
+          <p>Excellent Care</p>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4">
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-primary text-white">Care Quality</div>
+          <div class="card-body"><canvas id="careChart"></canvas></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-info text-white">Wait Time</div>
+          <div class="card-body"><canvas id="waitTimeChart"></canvas></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-purple text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
+          <div class="card-body"><canvas id="friendlinessChart"></canvas></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header bg-success text-white">Would Recommend?</div>
+          <div class="card-body"><canvas id="recommendChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
+      <div class="card-body" id="commentsSection">
+        <div class="comment-card">Loading...</div>
+      </div>
+    </div>
+  </div> <!-- End dashboardTab -->
+  <!-- Trends Tab -->
+  <div id="trendTab" class="tab-pane">
+    <h4>Feedback Trends</h4>
+    <p>Select variables and time range to view how feedback changes over time.</p>
+
+    <div class="form-inline mb-3">
+      <label class="mr-2">Start:</label>
+      <input type="date" id="startDate" class="form-control mr-3"/>
+      <label class="mr-2">End:</label>
+      <input type="date" id="endDate" class="form-control mr-3"/>
+
+      <label class="mr-2">Variable:</label>
+      <select id="trendVariable" class="form-control">
+        <option value="careQuality">Care Quality</option>
+        <option value="waitTime">Wait Time</option>
+        <option value="staffFriendliness">Staff Friendliness</option>
+        <option value="recommendClinic">Would Recommend</option>
+      </select>
+
+      <button class="btn btn-primary ml-3" onclick="filterTrends()">Apply</button>
+    </div>
+
+    <div>
+      <canvas id="trendChart" height="100"></canvas>
+    </div>
+  </div> <!-- End trendTab -->
+</div> <!-- End main -->
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCA3TfnbfOm7PxJCH153zHJRTe1wYUrPLM",
@@ -53,229 +176,149 @@
     messagingSenderId: "440404138384",
     appId: "1:440404138384:web:8f971a343eb6e467e23b15"
   };
+
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-  const auth = firebase.auth();
-</script>
 
-<!-- Login -->
-<div id="loginContainer" style="display:none;">
-  <h4 class="text-center mb-4">🔐 Admin Login</h4>
-  <div class="mb-3"><input type="email" id="loginEmail" class="form-control" placeholder="Email" /></div>
-  <div class="mb-3"><input type="password" id="loginPassword" class="form-control" placeholder="Password" /></div>
-  <div class="d-grid gap-2">
-    <button class="btn btn-primary" onclick="loginWithEmail()">Login with Email</button>
-    <button class="btn btn-danger" onclick="loginWithGoogle()">Login with Google</button>
-  </div>
-</div>
+  const charts = {};
 
-<!-- Dashboard -->
-<div id="dashboardContent" style="display:none;">
-  <div class="sidebar">
-    <h5 class="text-center mb-4">📊 Chambua Dashboard</h5>
-    <a href="#" class="active" onclick="showTab('dashboardTab')">Dashboard</a>
-    <a href="#" onclick="showTab('trendTab')">Trends</a>
-    <a href="#" onclick="logout()">Logout</a>
-  </div>
-
-  <div class="main">
-    <div class="dashboard-header text-center mb-4">
-      <h2>Clinic Feedback Summary</h2>
-      <input type="date" id="dateFilter" class="form-control w-auto mx-auto" />
-    </div>
-
-    <!-- Dashboard Tab -->
-    <div id="dashboardTab" class="tab-pane active">
-      <div class="row">
-        <div class="col-md-4"><div class="kpi-box kpi-blue"><h2 id="totalSubmissions">0</h2><p>Total Submissions</p></div></div>
-        <div class="col-md-4"><div class="kpi-box kpi-green"><h2 id="wouldRecommend">0</h2><p>Would Recommend</p></div></div>
-        <div class="col-md-4"><div class="kpi-box kpi-yellow"><h2 id="excellentCare">0</h2><p>Excellent Care</p></div></div>
-      </div>
-
-      <div class="row mt-4">
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-header bg-primary text-white">Care Quality <button class="btn btn-light btn-sm export-btn" onclick="exportChart('careChart')">Export</button></div>
-            <div class="card-body"><canvas id="careChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-header bg-info text-white">Wait Time <button class="btn btn-light btn-sm export-btn" onclick="exportChart('waitTimeChart')">Export</button></div>
-            <div class="card-body"><canvas id="waitTimeChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-header text-white" style="background-color: #6f42c1;">Friendliness <button class="btn btn-light btn-sm export-btn" onclick="exportChart('friendlinessChart')">Export</button></div>
-            <div class="card-body"><canvas id="friendlinessChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-header bg-success text-white">Recommend? <button class="btn btn-light btn-sm export-btn" onclick="exportChart('recommendChart')">Export</button></div>
-            <div class="card-body"><canvas id="recommendChart"></canvas></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card mt-4">
-        <div class="card-header bg-secondary text-white">Client Comments</div>
-        <div class="card-body" id="commentsSection"></div>
-      </div>
-    </div>
-
-    <!-- Trends Tab -->
-    <div id="trendTab" class="tab-pane">
-      <h4 class="mb-3">Feedback Trends</h4>
-      <div class="row">
-        <div class="col-md-3"><label>Start Date</label><input type="date" class="form-control" id="startDate"></div>
-        <div class="col-md-3"><label>End Date</label><input type="date" class="form-control" id="endDate"></div>
-        <div class="col-md-4"><label>Select Variable</label>
-          <select class="form-control" id="trendVariable">
-            <option value="recommendClinic">Would Recommend</option>
-            <option value="careQuality">Care Quality</option>
-            <option value="waitTime">Wait Time</option>
-            <option value="staffFriendliness">Staff Friendliness</option>
-          </select>
-        </div>
-        <div class="col-md-2 mt-4"><button class="btn btn-primary mt-2" onclick="filterTrends()">Apply Filter</button></div>
-      </div>
-      <div class="chart-wrapper mt-4"><canvas id="trendChart" height="100"></canvas></div>
-    </div>
-  </div>
-</div>
-<script>
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      document.getElementById("loginContainer").style.display = "none";
-      document.getElementById("dashboardContent").style.display = "block";
-      loadDashboardData();
-    } else {
-      document.getElementById("loginContainer").style.display = "block";
-      document.getElementById("dashboardContent").style.display = "none";
-    }
-  });
-  
-  function loginWithEmail() {
-    const email = document.getElementById("loginEmail").value;
-    const password = document.getElementById("loginPassword").value;
-    auth.signInWithEmailAndPassword(email, password).catch(alert);
-  }
-  
-  function loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(alert);
-  }
-  
-  function logout() {
-    auth.signOut();
-  }
-  
-  function showTab(tabId) {
+  function showTab(tabId, el) {
     document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
-    event.target.classList.add('active');
+    el.classList.add('active');
   }
-  
-  function exportChart(canvasId) {
-    html2canvas(document.getElementById(canvasId)).then(canvas => {
-      const link = document.createElement('a');
-      link.download = `${canvasId}.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  }
-  
-  let feedbackData = [];
-  
-  function loadDashboardData() {
-    db.collection("clinic_feedback").orderBy("submittedAt", "desc").onSnapshot(snapshot => {
-      feedbackData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      updateDashboard();
-    });
-  }
-  
-  function updateDashboard() {
-    const total = feedbackData.length;
-    const recommend = feedbackData.filter(f => f.recommendClinic === "Yes").length;
-    const excellentCare = feedbackData.filter(f => f.careQuality === "Excellent").length;
-    document.getElementById("totalSubmissions").innerText = total;
-    document.getElementById("wouldRecommend").innerText = recommend;
-    document.getElementById("excellentCare").innerText = excellentCare;
-  
-    updateChart("careChart", ["Excellent", "Good", "Average", "Poor"], f => f.careQuality);
-    updateChart("waitTimeChart", ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"], f => f.waitTime);
-    updateChart("friendlinessChart", ["Excellent", "Good", "Average", "Poor"], f => f.staffFriendliness);
-    updateChart("recommendChart", ["Yes", "No"], f => f.recommendClinic);
-  
-    const comments = feedbackData.filter(f => f.additionalComments)
-      .map(f => `<div class="comment-card">${f.additionalComments} • ${f.recommendClinic} • ${f.submittedAt?.toDate().toLocaleString() || ''}</div>`).join("");
-    document.getElementById("commentsSection").innerHTML = comments;
-  }
-  
-  function updateChart(canvasId, labels, extractor) {
-    const counts = labels.map(label => feedbackData.filter(f => extractor(f) === label).length);
-    const ctx = document.getElementById(canvasId).getContext('2d');
-    if (window[canvasId] instanceof Chart) window[canvasId].destroy();
-    window[canvasId] = new Chart(ctx, {
-      type: (canvasId === "recommendChart" || canvasId === "careChart") ? "pie" : "bar",
-      data: { labels, datasets: [{ data: counts, backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545', '#6f42c1'] }] },
-      options: { responsive: true, legend: { position: 'bottom' } }
-    });
-  }
-  
-  function filterTrends() {
-    const start = new Date(document.getElementById("startDate").value);
-    const end = new Date(document.getElementById("endDate").value);
-    end.setHours(23, 59, 59);
-    const trendKey = document.getElementById("trendVariable").value;
-  
-    const filtered = feedbackData.filter(f => {
-      const date = f.submittedAt?.toDate?.();
-      return (!start || !date || date >= start)
-          && (!end || !date || date <= end);
-    });
-  
-    const dateMap = {};
-    filtered.forEach(f => {
-      const date = f.submittedAt?.toDate()?.toLocaleDateString();
-      if (!date) return;
-      const value = f[trendKey];
-      if (!value) return;
-      if (!dateMap[date]) dateMap[date] = {};
-      dateMap[date][value] = (dateMap[date][value] || 0) + 1;
-    });
-  
-    const allDates = Object.keys(dateMap).sort();
-    const allLabels = [...new Set(filtered.map(f => f[trendKey]))];
-  
-    const datasets = allLabels.map(label => ({
-      label,
-      data: allDates.map(date => dateMap[date]?.[label] || 0),
-      borderColor: getRandomColor(),
-      fill: false
-    }));
-  
-    const trendCtx = document.getElementById("trendChart").getContext('2d');
-    if (window.trendChart instanceof Chart) window.trendChart.destroy();
-    window.trendChart = new Chart(trendCtx, {
-      type: "line",
-      data: { labels: allDates, datasets },
+
+  function renderPieChart(canvasId, labels, data, colors) {
+    const ctx = document.getElementById(canvasId).getContext("2d");
+    if (charts[canvasId]) charts[canvasId].destroy();
+
+    charts[canvasId] = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors
+        }]
+      },
       options: {
         responsive: true,
-        title: { display: true, text: `Trend: ${trendKey}` },
-        scales: { yAxes: [{ ticks: { beginAtZero: true, precision: 0 } }] }
+        plugins: [ChartDataLabels],
+        legend: { position: 'bottom' },
+        plugins: {
+          datalabels: {
+            formatter: (value, ctx) => {
+              let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+              let percentage = ((value / sum) * 100).toFixed(1) + "%";
+              return percentage;
+            },
+            color: '#fff'
+          }
+        }
       }
     });
   }
-  
-  function getRandomColor() {
-    const palette = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#17a2b8', '#fd7e14'];
-    return palette[Math.floor(Math.random() * palette.length)];
+
+  function updateDashboard(data) {
+    const total = data.length;
+    const recommendYes = data.filter(d => d.recommendClinic === "Yes").length;
+    const excellentCare = data.filter(d => d.careQuality === "Excellent").length;
+
+    document.getElementById("totalSubmissions").innerText = total;
+    document.getElementById("wouldRecommend").innerText = recommendYes;
+    document.getElementById("excellentCare").innerText = excellentCare;
+
+    const careCount = countBy(data, "careQuality", ['Excellent', 'Good', 'Average', 'Poor']);
+    const waitCount = countBy(data, "waitTime", ['Less than 15 minutes', '15–30 minutes', 'More than 30 minutes']);
+    const friendCount = countBy(data, "staffFriendliness", ['Excellent', 'Good', 'Average', 'Poor']);
+    const recCount = countBy(data, "recommendClinic", ['Yes', 'No']);
+
+    renderPieChart("careChart", Object.keys(careCount), Object.values(careCount), ['#28a745', '#007bff', '#ffc107', '#dc3545']);
+    renderPieChart("waitTimeChart", Object.keys(waitCount), Object.values(waitCount), ['#17a2b8', '#ffc107', '#dc3545']);
+    renderPieChart("friendlinessChart", Object.keys(friendCount), Object.values(friendCount), ['#6f42c1', '#007bff', '#ffc107', '#dc3545']);
+    renderPieChart("recommendChart", Object.keys(recCount), Object.values(recCount), ['#28a745', '#dc3545']);
+
+    const commentContainer = document.getElementById("commentsSection");
+    commentContainer.innerHTML = "";
+    data.forEach(entry => {
+      if (entry.additionalComments)
+        commentContainer.innerHTML += `<div class="comment-card">${entry.additionalComments}</div>`;
+    });
   }
-  </script>
-  </body>
-  </html>
-  
+
+  function countBy(data, field, categories) {
+    const counts = {};
+    categories.forEach(cat => counts[cat] = 0);
+    data.forEach(row => {
+      if (counts.hasOwnProperty(row[field])) counts[row[field]]++;
+    });
+    return counts;
+  }
+
+  db.collection("clinic_feedback").orderBy("submittedAt").onSnapshot(snapshot => {
+    const allData = [];
+    snapshot.forEach(doc => allData.push(doc.data()));
+    const date = document.getElementById("dateFilter").value;
+    const filtered = date ? allData.filter(entry => entry.submittedAt && entry.submittedAt.toDate().toISOString().startsWith(date)) : allData;
+    updateDashboard(filtered);
+    window.allFeedbackData = allData; // For trend use
+  });
+
+  function filterTrends() {
+    const variable = document.getElementById("trendVariable").value;
+    const start = new Date(document.getElementById("startDate").value);
+    const end = new Date(document.getElementById("endDate").value);
+    const raw = window.allFeedbackData || [];
+
+    const filtered = raw.filter(entry => {
+      if (!entry.submittedAt) return false;
+      const d = entry.submittedAt.toDate();
+      return (!isNaN(start) ? d >= start : true) && (!isNaN(end) ? d <= end : true);
+    });
+
+    const grouped = {};
+    filtered.forEach(entry => {
+      if (!entry.submittedAt || !entry[variable]) return;
+      const dateStr = entry.submittedAt.toDate().toISOString().split("T")[0];
+      if (!grouped[dateStr]) grouped[dateStr] = {};
+      if (!grouped[dateStr][entry[variable]]) grouped[dateStr][entry[variable]] = 0;
+      grouped[dateStr][entry[variable]]++;
+    });
+
+    const labels = Object.keys(grouped).sort();
+    const categories = [...new Set([].concat(...Object.values(grouped).map(obj => Object.keys(obj))))];
+    const datasets = categories.map(cat => ({
+      label: cat,
+      data: labels.map(label => grouped[label][cat] || 0),
+      fill: false,
+      borderColor: getColor(cat)
+    }));
+
+    const ctx = document.getElementById("trendChart").getContext("2d");
+    if (charts.trendChart) charts.trendChart.destroy();
+    charts.trendChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: { responsive: true, title: { display: true, text: 'Trends Over Time' } }
+    });
+  }
+
+  function getColor(label) {
+    const colors = {
+      "Excellent": "#28a745",
+      "Good": "#007bff",
+      "Average": "#ffc107",
+      "Poor": "#dc3545",
+      "Yes": "#28a745",
+      "No": "#dc3545"
+    };
+    return colors[label] || '#6c757d';
+  }
+
+  function logout() {
+    window.location.href = "index.html";
+  }
+</script>
+</body>
+</html>
