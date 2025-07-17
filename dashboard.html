@@ -469,7 +469,7 @@
 
 
 
-<!-- ✅ Part 5: Trends with grouped bars, clean dates, and choice filtering -->
+<!-- ✅ Part 5: Clean grouped bars with tight layout, dates, and filters -->
 <script>
   const trendVariables = {
     careQuality: ["Excellent", "Good", "Average", "Poor"],
@@ -579,8 +579,9 @@
         data: countsPerDate.map(day => day[index]),
         backgroundColor: color,
         borderWidth: 1,
-        barPercentage: 0.6,
-        categoryPercentage: 0.7
+        barThickness: 20,             // ✅ fixed thin bars
+        maxBarThickness: 20,
+        minBarLength: 2
       });
     });
 
@@ -639,8 +640,11 @@
             },
             ticks: {
               callback: function(value) {
-                return this.getLabelForValue(value); // ✅ Show clean date
+                return this.getLabelForValue(value); // ✅ show date only
               }
+            },
+            grid: {
+              drawOnChartArea: false
             }
           }
         }
@@ -655,6 +659,7 @@
   renderChoiceCheckboxes("careQuality");
   updateTrendChart();
 </script>
+
 
 
 
