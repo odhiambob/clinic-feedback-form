@@ -469,7 +469,38 @@
 
 
 
-<!-- ✅ Part 5: Fixed variable label mapping and working dropdown + checkbox filters -->
+<!-- ✅ Part 5 of dashboard.html: Trends tab with fixed variable dropdown, filters, and bar chart -->
+<div id="trendTab" class="tab-pane">
+  <h4>Feedback Trends</h4>
+  <p>Select a date range and variable to analyze trends over time.</p>
+
+  <div class="form-inline mb-3">
+    <label for="startDate">Start: </label>
+    <input type="date" id="startDate" class="form-control mx-2" />
+    <label for="endDate">End: </label>
+    <input type="date" id="endDate" class="form-control mx-2" />
+    <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="trendVariable"><strong>Select Variable:</strong></label>
+    <select id="trendVariable" class="form-control w-auto d-inline-block mx-2"></select>
+  </div>
+
+  <div class="form-group mb-3">
+    <label><strong>Filter Choices:</strong></label>
+    <div id="variableFilter" class="mt-1"></div>
+  </div>
+
+  <div class="mt-3" style="height: 280px;">
+    <canvas id="trendChart" height="100"></canvas>
+    <div class="mt-2 text-center">
+      <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPNG('trendChart')">Export PNG</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPDF('trendChart', 'Trends')">Export PDF</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const trendLabels = {
     "Care Quality": "careQuality",
@@ -654,14 +685,16 @@
     });
   }
 
+  function filterTrends() {
+    updateTrendChart();
+  }
+
   document.getElementById("startDate").addEventListener("change", updateTrendChart);
   document.getElementById("endDate").addEventListener("change", updateTrendChart);
   document.getElementById("trendVariable").value = "Care Quality";
   renderChoiceCheckboxes("Care Quality");
   updateTrendChart();
 </script>
-
-
 
 
 
