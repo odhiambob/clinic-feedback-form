@@ -469,7 +469,7 @@
 
 
 
-<!-- ✅ Part 5 of dashboard.html: Fixed variable dropdown, filters, tight bars, clean labels -->
+<!-- ✅ Part 5 of dashboard.html: Trends dropdown + filters + grouped bars without % signs -->
 <script>
   const trendVariables = {
     "Care Quality": ["Excellent", "Good", "Average", "Poor"],
@@ -488,7 +488,7 @@
   const trendSelect = document.getElementById("trendVariable");
   const filterWrapper = document.getElementById("variableFilter");
 
-  // Populate dropdown
+  // ✅ Populate dropdown with variable names
   Object.keys(trendVariables).forEach(key => {
     const opt = document.createElement("option");
     opt.value = key;
@@ -603,7 +603,7 @@
           tooltip: {
             callbacks: {
               label: function(ctx) {
-                return `${ctx.dataset.label}: ${ctx.raw}`; // ✅ no %
+                return `${ctx.dataset.label}: ${ctx.raw}`;
               }
             }
           },
@@ -615,7 +615,7 @@
               weight: "bold",
               size: 12
             },
-            formatter: (value) => `${value}` // ✅ no %
+            formatter: (value) => `${value}`
           }
         },
         scales: {
@@ -633,7 +633,7 @@
           x: {
             ticks: {
               callback: function(value) {
-                return this.getLabelForValue(value); // ✅ show clean date under bars
+                return this.getLabelForValue(value);
               }
             },
             title: {
@@ -647,8 +647,11 @@
     });
   }
 
+  // ✅ Event listeners
   document.getElementById("startDate").addEventListener("change", updateTrendChart);
   document.getElementById("endDate").addEventListener("change", updateTrendChart);
+
+  // ✅ Initial Load
   document.getElementById("trendVariable").value = "Care Quality";
   renderChoiceCheckboxes("Care Quality");
   updateTrendChart();
