@@ -315,7 +315,7 @@
   }
 </script>
 
-<!-- ✅ Part 4: Pie + Doughnut Charts with fixed labels and proper chart types -->
+<!-- ✅ Part 4: Pie + Doughnut Charts (clean legends, fixed layout) -->
 <script>
   async function updateDashboard(selectedDate) {
     const snapshot = await db.collection("clinic_feedback")
@@ -325,10 +325,12 @@
 
     const data = snapshot.docs.map(doc => doc.data());
 
-    // KPI Summary
+    // KPI Counts
     document.getElementById("totalSubmissions").innerText = data.length;
-    document.getElementById("wouldRecommend").innerText = data.filter(d => d.recommendClinic === "Yes").length;
-    document.getElementById("excellentCare").innerText = data.filter(d => d.careQuality === "Excellent").length;
+    document.getElementById("wouldRecommend").innerText =
+      data.filter(d => d.recommendClinic === "Yes").length;
+    document.getElementById("excellentCare").innerText =
+      data.filter(d => d.careQuality === "Excellent").length;
 
     // Count helper
     const countBy = (arr, key) =>
@@ -375,7 +377,24 @@
               position: 'top',
               labels: {
                 font: { size: 13 },
-                textDecoration: 'none' // ✅ No strikethrough
+                generateLabels: function(chart) {
+                  const data = chart.data;
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map((label, i) => {
+                      const value = data.datasets[0].data[i];
+                      const backgroundColor = data.datasets[0].backgroundColor[i];
+                      return {
+                        text: label,
+                        fillStyle: backgroundColor,
+                        strokeStyle: backgroundColor,
+                        lineWidth: 0,
+                        hidden: false,
+                        index: i
+                      };
+                    });
+                  }
+                  return [];
+                }
               }
             },
             tooltip: {
@@ -409,13 +428,13 @@
       return createChart(ctx, labels, values, colors, isDonut);
     };
 
-    // Update each chart
+    // Update each chart (only "Would Recommend?" is donut)
     careChart = updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
     waitTimeChart = updateChart(waitTimeChart, "waitTimeChart", labelsMap.waitTime, countBy(data, "waitTime"), colorsMap.waitTime);
     friendlinessChart = updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
-    recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic, true); // ✅ Donut
+    recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic, true);
 
-    // Client Comments
+    // Comments
     const commentsEl = document.getElementById("commentsSection");
     commentsEl.innerHTML = "";
     data.forEach(d => {
@@ -427,6 +446,7 @@
     });
   }
 
+  // Load today
   updateDashboard(today);
   document.getElementById("dateFilter").addEventListener("change", e => {
     const chosen = e.target.value;
