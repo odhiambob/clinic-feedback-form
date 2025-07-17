@@ -469,29 +469,30 @@
 
 
 
-<!-- ✅ Part 5 of dashboard.html: Trends with grouped bars, clean dates, and choice filtering -->
+<!-- ✅ Part 5 of dashboard.html: Fixed variable dropdown, filters, tight bars, clean labels -->
 <script>
   const trendVariables = {
-    careQuality: ["Excellent", "Good", "Average", "Poor"],
-    waitTime: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
-    staffFriendliness: ["Excellent", "Good", "Average", "Poor"],
-    recommendClinic: ["Yes", "No"]
+    "Care Quality": ["Excellent", "Good", "Average", "Poor"],
+    "Wait Time": ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
+    "Staff Friendliness": ["Excellent", "Good", "Average", "Poor"],
+    "Would Recommend?": ["Yes", "No"]
   };
 
   const trendColors = {
-    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
-    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
-    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
-    recommendClinic: ["#28a745", "#dc3545"]
+    "Care Quality": ["#28a745", "#007bff", "#ffc107", "#dc3545"],
+    "Wait Time": ["#17a2b8", "#ffc107", "#dc3545"],
+    "Staff Friendliness": ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
+    "Would Recommend?": ["#28a745", "#dc3545"]
   };
 
   const trendSelect = document.getElementById("trendVariable");
   const filterWrapper = document.getElementById("variableFilter");
 
+  // Populate dropdown
   Object.keys(trendVariables).forEach(key => {
     const opt = document.createElement("option");
     opt.value = key;
-    opt.textContent = key.replace(/([A-Z])/g, " $1").trim();
+    opt.textContent = key;
     trendSelect.appendChild(opt);
   });
 
@@ -579,8 +580,8 @@
         data: countsPerDate.map(day => day[index]),
         backgroundColor: color,
         borderWidth: 1,
-        barPercentage: 1.0,      // ✅ Make bars tight within group
-        categoryPercentage: 1.0  // ✅ Ensure bars are grouped with no space
+        barPercentage: 1.0,
+        categoryPercentage: 1.0
       });
     });
 
@@ -600,11 +601,9 @@
         plugins: {
           legend: { position: "top" },
           tooltip: {
-            mode: "index",
-            intersect: false,
             callbacks: {
               label: function(ctx) {
-                return `${ctx.dataset.label}: ${ctx.raw}%`;
+                return `${ctx.dataset.label}: ${ctx.raw}`; // ✅ no %
               }
             }
           },
@@ -616,7 +615,7 @@
               weight: "bold",
               size: 12
             },
-            formatter: (value) => `${value}%`
+            formatter: (value) => `${value}` // ✅ no %
           }
         },
         scales: {
@@ -624,7 +623,7 @@
             beginAtZero: true,
             max: 100,
             ticks: {
-              callback: (v) => v // ✅ remove % sign on vertical scale
+              callback: (v) => v
             },
             title: {
               display: true,
@@ -632,11 +631,14 @@
             }
           },
           x: {
-            stacked: false,
             ticks: {
-              callback: function(value, index) {
-                return this.getLabelForValue(value); // ✅ date shown below each group
+              callback: function(value) {
+                return this.getLabelForValue(value); // ✅ show clean date under bars
               }
+            },
+            title: {
+              display: true,
+              text: "Date"
             }
           }
         }
@@ -647,10 +649,11 @@
 
   document.getElementById("startDate").addEventListener("change", updateTrendChart);
   document.getElementById("endDate").addEventListener("change", updateTrendChart);
-  document.getElementById("trendVariable").value = "careQuality";
-  renderChoiceCheckboxes("careQuality");
+  document.getElementById("trendVariable").value = "Care Quality";
+  renderChoiceCheckboxes("Care Quality");
   updateTrendChart();
 </script>
+
 
 
 
