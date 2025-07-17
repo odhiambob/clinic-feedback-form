@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   
-    <!-- ✅ Firebase SDKs -->
+    <!-- ✅ Firebase SDKs (Only include ONCE) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -99,12 +99,17 @@
         text-anchor: middle;
       }
   
-      /* ✅ Force-remove any legend strikethrough just in case */
-      .chartjs-legend li span,
+      /* ✅ Force-remove all strikethroughs from Chart.js legends */
       .chartjs-legend li,
+      .chartjs-legend li span,
+      .chartjs-legend text,
       .chart-legend li,
-      .chart-legend text {
+      .chart-legend li span,
+      .chart-legend text,
+      .chart-legend * {
         text-decoration: none !important;
+        text-decoration-line: none !important;
+        text-decoration-style: none !important;
       }
     </style>
   </head>
@@ -389,9 +394,10 @@
           plugins: {
             legend: {
               position: 'top',
-              onClick: null, // ✅ disables hiding on click (removes strikethrough)
+              onClick: () => {}, // ✅ disables toggling (no strike-through)
               labels: {
                 font: { size: 13 },
+                textDecoration: 'none',
                 generateLabels: function(chart) {
                   const data = chart.data;
                   const colors = data.datasets[0].backgroundColor;
@@ -460,6 +466,7 @@
     updateDashboard(chosen);
   });
 </script>
+
 
 
 <!-- ✅ Part 5: Trends Chart with Grouped Bars + Trend Lines + Export Buttons -->
