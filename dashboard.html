@@ -315,7 +315,7 @@
   }
 </script>
 
-<!-- ✅ Updated Part 4: Dashboard Pie Charts (2x2 layout, percentages inside, no strikethrough) -->
+<!-- ✅ Part 4: Pie Chart Functionality (with percentage labels and fixed layout) -->
 <script>
   async function updateDashboard(selectedDate) {
     const snapshot = await db.collection("clinic_feedback")
@@ -325,13 +325,14 @@
 
     const data = snapshot.docs.map(doc => doc.data());
 
-    // KPI
+    // KPI Counts
     document.getElementById("totalSubmissions").innerText = data.length;
     document.getElementById("wouldRecommend").innerText =
       data.filter(d => d.recommendClinic === "Yes").length;
     document.getElementById("excellentCare").innerText =
       data.filter(d => d.careQuality === "Excellent").length;
 
+    // Helper Functions
     const countBy = (arr, key) =>
       arr.reduce((acc, item) => {
         const val = item[key] || "Undefined";
@@ -365,21 +366,35 @@
           labels,
           datasets: [{
             data: values,
-            backgroundColor: colors
+            backgroundColor: colors,
+            borderWidth: 1
           }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { position: 'bottom' },
+            legend: {
+              position: 'bottom',
+              labels: {
+                font: { size: 12 }
+              }
+            },
             tooltip: {
               callbacks: {
-                label: (ctx) => `${ctx.label}: ${ctx.raw}%`
+                label: function(ctx) {
+                  return `${ctx.label}: ${ctx.raw}%`;
+                }
               }
             },
             datalabels: {
               color: '#fff',
-              formatter: (value) => `${value}%`
+              font: {
+                weight: 'bold',
+                size: 14
+              },
+              formatter: function(value) {
+                return value + '%';
+              }
             }
           }
         },
@@ -401,7 +416,7 @@
     friendlinessChart = updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
     recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic);
 
-    // Comments
+    // Client Comments
     const commentsEl = document.getElementById("commentsSection");
     commentsEl.innerHTML = "";
     data.forEach(d => {
@@ -413,6 +428,7 @@
     });
   }
 
+  // Load today by default
   updateDashboard(today);
   document.getElementById("dateFilter").addEventListener("change", e => {
     const chosen = e.target.value;
@@ -420,6 +436,7 @@
     updateDashboard(chosen);
   });
 </script>
+
 
 
 <!-- ✅ Part 5: Trends Chart with Grouped Bars + Trend Lines + Export Buttons -->
