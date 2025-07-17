@@ -315,7 +315,7 @@
   }
 </script>
 
-<!-- ✅ Part 4: Pie Chart Functionality (with percentage labels and fixed layout) -->
+<!-- ✅ Part 4: Pie + Doughnut Charts with fixed labels and proper chart types -->
 <script>
   async function updateDashboard(selectedDate) {
     const snapshot = await db.collection("clinic_feedback")
@@ -325,14 +325,12 @@
 
     const data = snapshot.docs.map(doc => doc.data());
 
-    // KPI Counts
+    // KPI Summary
     document.getElementById("totalSubmissions").innerText = data.length;
-    document.getElementById("wouldRecommend").innerText =
-      data.filter(d => d.recommendClinic === "Yes").length;
-    document.getElementById("excellentCare").innerText =
-      data.filter(d => d.careQuality === "Excellent").length;
+    document.getElementById("wouldRecommend").innerText = data.filter(d => d.recommendClinic === "Yes").length;
+    document.getElementById("excellentCare").innerText = data.filter(d => d.careQuality === "Excellent").length;
 
-    // Helper Functions
+    // Count helper
     const countBy = (arr, key) =>
       arr.reduce((acc, item) => {
         const val = item[key] || "Undefined";
@@ -359,9 +357,9 @@
       recommendClinic: ["#28a745", "#dc3545"]
     };
 
-    const createPieChart = (ctx, labels, values, colors) => {
+    const createChart = (ctx, labels, values, colors, isDonut = false) => {
       return new Chart(ctx, {
-        type: 'doughnut',
+        type: isDonut ? 'doughnut' : 'pie',
         data: {
           labels,
           datasets: [{
@@ -374,9 +372,10 @@
           responsive: true,
           plugins: {
             legend: {
-              position: 'bottom',
+              position: 'top',
               labels: {
-                font: { size: 12 }
+                font: { size: 13 },
+                textDecoration: 'none' // ✅ No strikethrough
               }
             },
             tooltip: {
@@ -402,19 +401,19 @@
       });
     };
 
-    const updateChart = (refName, canvasId, labels, counts, colors) => {
+    const updateChart = (ref, id, labels, counts, colors, isDonut = false) => {
       const values = piePercentages(counts);
-      const ctx = document.getElementById(canvasId)?.getContext("2d");
+      const ctx = document.getElementById(id)?.getContext("2d");
       if (!ctx) return;
-      if (refName && typeof refName.destroy === "function") refName.destroy();
-      const chart = createPieChart(ctx, labels, values, colors);
-      return chart;
+      if (ref && typeof ref.destroy === "function") ref.destroy();
+      return createChart(ctx, labels, values, colors, isDonut);
     };
 
+    // Update each chart
     careChart = updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
     waitTimeChart = updateChart(waitTimeChart, "waitTimeChart", labelsMap.waitTime, countBy(data, "waitTime"), colorsMap.waitTime);
     friendlinessChart = updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
-    recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic);
+    recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic, true); // ✅ Donut
 
     // Client Comments
     const commentsEl = document.getElementById("commentsSection");
@@ -428,7 +427,6 @@
     });
   }
 
-  // Load today by default
   updateDashboard(today);
   document.getElementById("dateFilter").addEventListener("change", e => {
     const chosen = e.target.value;
