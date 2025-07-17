@@ -4,8 +4,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
 
 
-
-<!-- ✅ Part 1 of dashboard.html: Head, Styles, Chart.js, Firebase SDKs -->
+<!-- ✅ Part 1 of dashboard.html: Head, Styles, Firebase SDKs (no Chart.js duplication) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,9 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- ✅ Chart.js + Compatible Plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+  <!-- ✅ NO Chart.js or plugins here (already loaded in Part 0) -->
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
