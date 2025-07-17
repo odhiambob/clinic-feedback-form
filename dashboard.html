@@ -255,11 +255,6 @@
 </body>
 
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
 <!-- Part 1 of login: Firebase Config -->
 <script>
   const firebaseConfig = {
@@ -335,7 +330,7 @@
   }
 </script>
 
-<!-- ✅ Part 4: Pie + Doughnut Charts (clean legends, fixed layout) -->
+<!-- ✅ Part 4: Pie & Doughnut Charts (Legend fixed, no strikethrough, correct chart types) -->
 <script>
   async function updateDashboard(selectedDate) {
     const snapshot = await db.collection("clinic_feedback")
@@ -345,14 +340,13 @@
 
     const data = snapshot.docs.map(doc => doc.data());
 
-    // KPI Counts
+    // KPI counts
     document.getElementById("totalSubmissions").innerText = data.length;
     document.getElementById("wouldRecommend").innerText =
       data.filter(d => d.recommendClinic === "Yes").length;
     document.getElementById("excellentCare").innerText =
       data.filter(d => d.careQuality === "Excellent").length;
 
-    // Count helper
     const countBy = (arr, key) =>
       arr.reduce((acc, item) => {
         const val = item[key] || "Undefined";
@@ -395,25 +389,20 @@
           plugins: {
             legend: {
               position: 'top',
+              onClick: null, // ✅ disables hiding on click (removes strikethrough)
               labels: {
                 font: { size: 13 },
                 generateLabels: function(chart) {
                   const data = chart.data;
-                  if (data.labels.length && data.datasets.length) {
-                    return data.labels.map((label, i) => {
-                      const value = data.datasets[0].data[i];
-                      const backgroundColor = data.datasets[0].backgroundColor[i];
-                      return {
-                        text: label,
-                        fillStyle: backgroundColor,
-                        strokeStyle: backgroundColor,
-                        lineWidth: 0,
-                        hidden: false,
-                        index: i
-                      };
-                    });
-                  }
-                  return [];
+                  const colors = data.datasets[0].backgroundColor;
+                  return data.labels.map((label, i) => ({
+                    text: label,
+                    fillStyle: colors[i],
+                    strokeStyle: colors[i],
+                    lineWidth: 0,
+                    hidden: false,
+                    index: i
+                  }));
                 }
               }
             },
@@ -448,13 +437,11 @@
       return createChart(ctx, labels, values, colors, isDonut);
     };
 
-    // Update each chart (only "Would Recommend?" is donut)
     careChart = updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
     waitTimeChart = updateChart(waitTimeChart, "waitTimeChart", labelsMap.waitTime, countBy(data, "waitTime"), colorsMap.waitTime);
     friendlinessChart = updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
     recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic, true);
 
-    // Comments
     const commentsEl = document.getElementById("commentsSection");
     commentsEl.innerHTML = "";
     data.forEach(d => {
@@ -466,7 +453,6 @@
     });
   }
 
-  // Load today
   updateDashboard(today);
   document.getElementById("dateFilter").addEventListener("change", e => {
     const chosen = e.target.value;
@@ -474,7 +460,6 @@
     updateDashboard(chosen);
   });
 </script>
-
 
 
 <!-- ✅ Part 5: Trends Chart with Grouped Bars + Trend Lines + Export Buttons -->
