@@ -469,7 +469,7 @@
 
 
 
-<!-- ✅ Part 5: Trends Chart with Grouped Bars (No Lines) -->
+<!-- ✅ Part 5: Clean Grouped Bar Chart with Professional Spacing -->
 <script>
   const trendVariables = ["careQuality", "waitTime", "staffFriendliness", "recommendClinic"];
   const trendColors = {
@@ -544,7 +544,9 @@
         label: label,
         data: countsPerDate.map(day => day[i]),
         backgroundColor: color,
-        borderWidth: 1
+        borderWidth: 1,
+        barPercentage: 0.6,
+        categoryPercentage: 0.7
       });
     });
 
@@ -597,6 +599,12 @@
           },
           x: {
             stacked: false,
+            ticks: {
+              display: true,
+              callback: function(value, index, values) {
+                return this.getLabelForValue(value);
+              }
+            },
             title: {
               display: true,
               text: "Date"
