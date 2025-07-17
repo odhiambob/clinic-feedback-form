@@ -3,7 +3,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
-<!-- ✅ Part 1 of dashboard.html: Boilerplate and Firebase config -->
+<!-- ✅ Part 1 of dashboard.html: Head, Styles, and Firebase Config -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +16,9 @@
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+
+  <!-- ✅ ChartDataLabels Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -87,7 +90,8 @@
   </style>
 </head>
 
-<!-- ✅ Part 2 of dashboard.html: Body, Sidebar, and Tabs -->
+
+<!-- ✅ Part 2 of dashboard.html: Body, Sidebar, Tabs, 2x2 Pie Layout + Export Buttons -->
 <body>
 
   <!-- Sidebar -->
@@ -97,7 +101,7 @@
     <a href="#" onclick="showTab('trendTab')">Trends</a>
     <a href="#" onclick="logout()">Logout</a>
   </div>
-  
+
   <!-- Main Content -->
   <div class="main">
     <div class="dashboard-header">
@@ -105,106 +109,131 @@
       <p>Showing results for: <span id="currentDateLabel"></span></p>
       <input type="date" id="dateFilter" class="form-control w-auto mx-auto"/>
     </div>
-  
+
     <!-- Tabs Start -->
     <div id="dashboardTab" class="tab-pane active">
 
-    <!-- KPI Cards -->
-    <div class="row">
-      <div class="col-md-4">
-        <div class="kpi-box kpi-blue">
-          <h2 id="totalSubmissions">0</h2>
-          <p>Total Submissions</p>
+      <!-- KPI Cards -->
+      <div class="row">
+        <div class="col-md-4">
+          <div class="kpi-box kpi-blue">
+            <h2 id="totalSubmissions">0</h2>
+            <p>Total Submissions</p>
+          </div>
         </div>
-      </div>
-      <div class="col-md-4">
-        <div class="kpi-box kpi-green">
-          <h2 id="wouldRecommend">0</h2>
-          <p>Would Recommend</p>
+        <div class="col-md-4">
+          <div class="kpi-box kpi-green">
+            <h2 id="wouldRecommend">0</h2>
+            <p>Would Recommend</p>
+          </div>
         </div>
-      </div>
-      <div class="col-md-4">
-        <div class="kpi-box kpi-yellow">
-          <h2 id="excellentCare">0</h2>
-          <p>Excellent Care</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Feedback Charts -->
-    <div class="row mt-4">
-      <div class="col-md-3">
-        <div class="card">
-          <div class="card-header bg-primary text-white">Care Quality</div>
-          <div class="card-body">
-            <canvas id="careChart"></canvas>
+        <div class="col-md-4">
+          <div class="kpi-box kpi-yellow">
+            <h2 id="excellentCare">0</h2>
+            <p>Excellent Care</p>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card">
-          <div class="card-header bg-info text-white">Wait Time</div>
-          <div class="card-body">
-            <canvas id="waitTimeChart"></canvas>
+
+      <!-- Feedback Charts: 2 per row -->
+      <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header bg-primary text-white">Care Quality</div>
+            <div class="card-body text-center">
+              <canvas id="careChart" height="150"></canvas>
+              <div class="mt-2">
+                <button onclick="exportChartAsPNG('careChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                <button onclick="exportChartAsPDF('careChart', 'Care Quality')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header bg-info text-white">Wait Time</div>
+            <div class="card-body text-center">
+              <canvas id="waitTimeChart" height="150"></canvas>
+              <div class="mt-2">
+                <button onclick="exportChartAsPNG('waitTimeChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                <button onclick="exportChartAsPDF('waitTimeChart', 'Wait Time')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
+            <div class="card-body text-center">
+              <canvas id="friendlinessChart" height="150"></canvas>
+              <div class="mt-2">
+                <button onclick="exportChartAsPNG('friendlinessChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                <button onclick="exportChartAsPDF('friendlinessChart', 'Staff Friendliness')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header bg-success text-white">Would Recommend?</div>
+            <div class="card-body text-center">
+              <canvas id="recommendChart" height="150"></canvas>
+              <div class="mt-2">
+                <button onclick="exportChartAsPNG('recommendChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                <button onclick="exportChartAsPDF('recommendChart', 'Would Recommend')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card">
-          <div class="card-header text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
-          <div class="card-body">
-            <canvas id="friendlinessChart"></canvas>
-          </div>
+
+      <!-- Client Comments -->
+      <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
+        <div class="card-body" id="commentsSection">
+          <!-- Comments will be dynamically added here -->
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card">
-          <div class="card-header bg-success text-white">Would Recommend?</div>
-          <div class="card-body">
-            <canvas id="recommendChart"></canvas>
-          </div>
+
+      <!-- Export All Charts -->
+      <div class="text-center mt-4">
+        <button class="btn btn-outline-primary mx-1" onclick="exportAllChartsAsPDF()">📄 Export All as PDF</button>
+        <button class="btn btn-outline-success mx-1" onclick="exportAllChartsAsPNGs()">🖼️ Export All as PNGs</button>
+      </div>
+    </div> <!-- End Dashboard Tab -->
+
+    <!-- Trends Tab -->
+    <div id="trendTab" class="tab-pane">
+      <h4>Feedback Trends</h4>
+      <p>Select a date range and variable to analyze trends over time.</p>
+
+      <div class="form-inline mb-3">
+        <label for="startDate">Start: </label>
+        <input type="date" id="startDate" class="form-control mx-2"/>
+        <label for="endDate">End: </label>
+        <input type="date" id="endDate" class="form-control mx-2"/>
+        <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
+      </div>
+
+      <!-- Variable Dropdown -->
+      <div class="form-group">
+        <label><strong>Select Variable:</strong></label>
+        <div id="variableFilter">
+          <select id="trendVariable" class="form-control w-auto mt-1"></select>
         </div>
       </div>
-    </div>
 
-    <!-- Comments Section -->
-    <div class="card mt-4">
-      <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
-      <div class="card-body" id="commentsSection">
-        <!-- Comments will be dynamically added here -->
+      <div class="mt-3" style="height: 280px;">
+        <canvas id="trendChart" height="100"></canvas>
+        <div class="mt-2 text-center">
+          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPNG('trendChart')">Export PNG</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPDF('trendChart', 'Trends')">Export PDF</button>
+        </div>
       </div>
-    </div>
-  </div> <!-- End Dashboard Tab -->
+    </div> <!-- End Trends Tab -->
+  </div> <!-- End Main -->
+</body>
 
-  <!-- Trends Tab -->
-  <div id="trendTab" class="tab-pane">
-    <h4>Feedback Trends</h4>
-    <p>Select a date range and variables to analyze trends over time.</p>
-
-    <div class="form-inline mb-3">
-      <label for="startDate">Start: </label>
-      <input type="date" id="startDate" class="form-control mx-2"/>
-      <label for="endDate">End: </label>
-      <input type="date" id="endDate" class="form-control mx-2"/>
-      <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
-    </div>
-
-    <!-- Variable Checklist -->
-    <div class="form-group">
-      <label><strong>Select Variables:</strong></label>
-      <div id="variableFilter">
-        <div><input type="checkbox" class="trend-var" value="recommendClinic" checked> Would Recommend</div>
-        <div><input type="checkbox" class="trend-var" value="careQuality" checked> Care Quality</div>
-        <div><input type="checkbox" class="trend-var" value="waitTime" checked> Wait Time</div>
-        <div><input type="checkbox" class="trend-var" value="staffFriendliness" checked> Staff Friendliness</div>
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <canvas id="trendChart" height="100"></canvas>
-    </div>
-  </div> <!-- End Trends Tab -->
-</div> <!-- End Main -->
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -286,9 +315,8 @@
   }
 </script>
 
-<!-- Part 4 of dashboard.html: Load and Update Dashboard Charts from Firestore -->
+<!-- ✅ Updated Part 4: Dashboard Pie Charts (2x2 layout, percentages inside, no strikethrough) -->
 <script>
-  // Update dashboard view based on date
   async function updateDashboard(selectedDate) {
     const snapshot = await db.collection("clinic_feedback")
       .where("submittedAt", ">=", new Date(selectedDate + "T00:00:00"))
@@ -297,21 +325,19 @@
 
     const data = snapshot.docs.map(doc => doc.data());
 
-    // KPI counts
+    // KPI
     document.getElementById("totalSubmissions").innerText = data.length;
     document.getElementById("wouldRecommend").innerText =
       data.filter(d => d.recommendClinic === "Yes").length;
     document.getElementById("excellentCare").innerText =
       data.filter(d => d.careQuality === "Excellent").length;
 
-    // Build chart data
-    const countBy = (arr, key) => {
-      return arr.reduce((acc, item) => {
+    const countBy = (arr, key) =>
+      arr.reduce((acc, item) => {
         const val = item[key] || "Undefined";
         acc[val] = (acc[val] || 0) + 1;
         return acc;
       }, {});
-    };
 
     const piePercentages = (counts) => {
       const total = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -332,19 +358,42 @@
       recommendClinic: ["#28a745", "#dc3545"]
     };
 
-    // Updated: Reusable updateChart function
+    const createPieChart = (ctx, labels, values, colors) => {
+      return new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.label}: ${ctx.raw}%`
+              }
+            },
+            datalabels: {
+              color: '#fff',
+              formatter: (value) => `${value}%`
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    };
+
     const updateChart = (refName, canvasId, labels, counts, colors) => {
       const values = piePercentages(counts);
       const ctx = document.getElementById(canvasId)?.getContext("2d");
       if (!ctx) return;
-
-      // Destroy old chart if it exists
-      if (refName && typeof refName.destroy === "function") {
-        refName.destroy();
-      }
-
-      const newChart = createPieChart(ctx, labels, values, colors);
-      return newChart;
+      if (refName && typeof refName.destroy === "function") refName.destroy();
+      const chart = createPieChart(ctx, labels, values, colors);
+      return chart;
     };
 
     careChart = updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
@@ -352,7 +401,7 @@
     friendlinessChart = updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
     recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic);
 
-    // Display comments
+    // Comments
     const commentsEl = document.getElementById("commentsSection");
     commentsEl.innerHTML = "";
     data.forEach(d => {
@@ -364,10 +413,7 @@
     });
   }
 
-  // Trigger update on load
   updateDashboard(today);
-
-  // Trigger update when date changes
   document.getElementById("dateFilter").addEventListener("change", e => {
     const chosen = e.target.value;
     document.getElementById("currentDateLabel").textContent = chosen;
@@ -375,16 +421,9 @@
   });
 </script>
 
-<!-- Part 5 of dashboard.html: Trends Chart with Variable Filtering -->
-<script>
-  const trendVariables = ["careQuality", "waitTime", "staffFriendliness", "recommendClinic"];
-  const trendColors = {
-    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
-    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
-    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
-    recommendClinic: ["#28a745", "#dc3545"]
-  };
 
+<!-- ✅ Updated Part 5: Trend chart with real dates and smaller height -->
+<script>
   const trendLabels = {
     careQuality: ["Excellent", "Good", "Average", "Poor"],
     waitTime: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
@@ -392,20 +431,21 @@
     recommendClinic: ["Yes", "No"]
   };
 
-  // Recreate checklist UI safely
-  const trendSelect = document.createElement("select");
-  trendSelect.id = "trendVariable";
-  trendSelect.classList.add("form-control", "w-auto", "mx-2");
-  document.getElementById("variableFilter").appendChild(trendSelect);
+  const trendColors = {
+    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
+    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
+    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
+    recommendClinic: ["#28a745", "#dc3545"]
+  };
 
-  trendVariables.forEach(v => {
+  const trendSelect = document.getElementById("trendVariable");
+  trendSelect.innerHTML = "";
+  for (const v in trendLabels) {
     const opt = document.createElement("option");
     opt.value = v;
     opt.textContent = v.replace(/([A-Z])/g, ' $1').trim();
     trendSelect.appendChild(opt);
-  });
-
-  trendSelect.value = "recommendClinic";
+  }
 
   let trendBarChart = null;
 
@@ -416,11 +456,13 @@
     yesterday.setDate(today.getDate() - 1);
 
     const formatDate = (d) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear().toString().slice(-2)}`;
 
-    const fetchByDate = async (dateStr) => {
-      const start = new Date(dateStr + "T00:00:00");
-      const end = new Date(dateStr + "T23:59:59");
+    const fetchByDate = async (date) => {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
 
       const snap = await db.collection("clinic_feedback")
         .where("submittedAt", ">=", start)
@@ -430,8 +472,8 @@
       return snap.docs.map(d => d.data());
     };
 
-    const dataToday = await fetchByDate(formatDate(today));
-    const dataYesterday = await fetchByDate(formatDate(yesterday));
+    const dataToday = await fetchByDate(today);
+    const dataYesterday = await fetchByDate(yesterday);
 
     const countBy = (data, key) => {
       return trendLabels[key].map(label =>
@@ -445,7 +487,6 @@
     const ctx = document.getElementById("trendChart")?.getContext("2d");
     if (!ctx) return;
 
-    // Clean up old chart safely
     if (trendBarChart && typeof trendBarChart.destroy === "function") {
       trendBarChart.destroy();
     }
@@ -456,47 +497,40 @@
         labels: trendLabels[variable],
         datasets: [
           {
-            label: "Yesterday",
+            label: formatDate(yesterday),
             data: yesterdayCounts,
-            backgroundColor: trendColors[variable],
+            backgroundColor: trendColors[variable]
           },
           {
-            label: "Today",
+            label: formatDate(today),
             data: todayCounts,
-            backgroundColor: trendColors[variable].map(c => c + "88"),
-          },
+            backgroundColor: trendColors[variable].map(c => c + "88")
+          }
         ]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top' },
+          legend: { position: "top" },
           tooltip: {
             callbacks: {
-              label: function (context) {
-                const value = context.raw;
-                return `${context.dataset.label}: ${value}`;
-              }
+              label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}`
             }
           }
         },
         scales: {
-          y: { beginAtZero: true, display: false },
-          x: {
-            ticks: {
-              callback: function (label) {
-                return trendLabels[variable][label];
-              }
-            }
-          }
+          y: { beginAtZero: true },
+          x: { stacked: false }
         }
       }
     });
   }
 
   trendSelect.addEventListener("change", updateTrendChart);
-  updateTrendChart(); // Initial load
+  updateTrendChart();
 </script>
+
 
 <!-- ✅ Part 6 of dashboard.html: Export Charts to PNG and PDF -->
 <!-- Export libraries -->
