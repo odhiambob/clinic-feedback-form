@@ -468,12 +468,11 @@
 </script>
 
 
-<!-- ✅ Part 5.1: Trends Tab HTML layout only -->
+<!-- ✅ Part 5 of dashboard.html: Trends tab with fixed variable dropdown, filters, and bar chart -->
 <div id="trendTab" class="tab-pane">
   <h4>Feedback Trends</h4>
   <p>Select a date range and variable to analyze trends over time.</p>
 
-  <!-- Date Range Filter -->
   <div class="form-inline mb-3">
     <label for="startDate">Start: </label>
     <input type="date" id="startDate" class="form-control mx-2" />
@@ -482,19 +481,16 @@
     <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
   </div>
 
-  <!-- Variable Dropdown (separate container!) -->
   <div class="form-group mb-3">
     <label for="trendVariable"><strong>Select Variable:</strong></label>
     <select id="trendVariable" class="form-control w-auto d-inline-block mx-2"></select>
   </div>
 
-  <!-- Dynamic Checkboxes -->
   <div class="form-group mb-3">
     <label><strong>Filter Choices:</strong></label>
     <div id="variableFilter" class="mt-1"></div>
   </div>
 
-  <!-- Chart Canvas -->
   <div class="mt-3" style="height: 280px;">
     <canvas id="trendChart" height="100"></canvas>
     <div class="mt-2 text-center">
@@ -503,6 +499,208 @@
     </div>
   </div>
 </div>
+
+<script>
+  const trendLabels = {
+    "Care Quality": "careQuality",
+    "Wait Time": "waitTime",
+    "Staff Friendliness": "staffFriendliness",
+    "Would Recommend?": "recommendClinic"
+  };
+
+  const trendVariables = {
+    "Care Quality": ["Excellent", "Good", "Average", "Poor"],
+    "Wait Time": ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
+    "Staff Friendliness": ["Excellent", "Good", "Average", "Poor"],
+    "Would Recommend?": ["Yes", "No"]
+  };
+
+  const trendColors = {
+    "Care Quality": ["#28a745", "#007bff", "#ffc107", "#dc3545"],
+    "Wait Time": ["#17a2b8", "#ffc107", "#dc3545"],
+    "Staff Friendliness": ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
+    "Would Recommend?": ["#28a745", "#dc3545"]
+  };
+
+  const trendSelect = document.getElementById("trendVariable");
+  const filterWrapper = document.getElementById("variableFilter");
+
+  Object.keys(trendVariables).forEach(key => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = key;
+    trendSelect.appendChild(opt);
+  });
+
+  let trendBarChart = null;
+  let selectedChoices = [];
+
+  trendSelect.addEventListener("change", () => {
+    const variable = trendSelect.value;
+    selectedChoices = [...trendVariables[variable]];
+    renderChoiceCheckboxes(variable);
+    updateTrendChart();
+  });
+
+  function renderChoiceCheckboxes(variable) {
+    const choices = trendVariables[variable];
+    filterWrapper.innerHTML = "";
+    choices.forEach(choice => {
+      const div = document.createElement("div");
+      div.classList.add("form-check", "form-check-inline");
+      div.innerHTML = `
+        <input class="form-check-input" type="checkbox" checked value="${choice}" id="check-${choice}">
+        <label class="form-check-label" for="check-${choice}">${choice}</label>
+      `;
+      filterWrapper.appendChild(div);
+    });
+
+    document.querySelectorAll(".form-check-input").forEach(input => {
+      input.addEventListener("change", () => {
+        selectedChoices = Array.from(document.querySelectorAll(".form-check-input"))
+          .filter(cb => cb.checked)
+          .map(cb => cb.value);
+        updateTrendChart();
+      });
+    });
+  }
+
+  async function updateTrendChart() {
+  console.log("🟢 updateTrendChart() triggered");
+
+  const displayVariable = trendSelect.value;
+  const firestoreField = trendLabels[displayVariable];
+  const startDate = new Date(document.getElementById("startDate").value);
+  const endDate = new Date(document.getElementById("endDate").value);
+  if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) {
+    console.log("⚠️ Invalid start or end date");
+    return;
+  }
+
+
+    const allDates = [];
+    const curr = new Date(startDate);
+    while (curr <= endDate) {
+      allDates.push(new Date(curr));
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    const formatDate = (d) =>
+      `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getFullYear()).slice(-2)}`;
+
+    const fetchDataForDate = async (date) => {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+      const snap = await db.collection("clinic_feedback")
+        .where("submittedAt", ">=", start)
+        .where("submittedAt", "<=", end)
+        .get();
+      return snap.docs.map(d => d.data());
+    };
+
+    const countsPerDate = [];
+    for (const date of allDates) {
+      const raw = await fetchDataForDate(date);
+      const total = raw.length || 1;
+      const labelSet = trendVariables[displayVariable];
+      const dailyCounts = labelSet.map(label =>
+        Math.round((raw.filter(d => d[firestoreField] === label).length / total) * 100)
+      );
+      countsPerDate.push(dailyCounts);
+    }
+
+    const datasets = [];
+    const allLabels = trendVariables[displayVariable];
+    const activeLabels = selectedChoices.length > 0 ? selectedChoices : allLabels;
+
+    activeLabels.forEach(label => {
+      const index = allLabels.indexOf(label);
+      const color = trendColors[displayVariable][index];
+      datasets.push({
+        label: label,
+        data: countsPerDate.map(day => day[index]),
+        backgroundColor: color,
+        borderWidth: 1,
+        barPercentage: 1.0,
+        categoryPercentage: 1.0
+      });
+    });
+
+    const ctx = document.getElementById("trendChart")?.getContext("2d");
+    if (!ctx) return;
+    if (trendBarChart && typeof trendBarChart.destroy === "function") trendBarChart.destroy();
+
+    trendBarChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: allDates.map(formatDate),
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "top" },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return `${ctx.dataset.label}: ${ctx.raw}`;
+              }
+            }
+          },
+          datalabels: {
+            anchor: "end",
+            align: "end",
+            color: "#000",
+            font: {
+              weight: "bold",
+              size: 12
+            },
+            formatter: (value) => `${value}`
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: (v) => v
+            },
+            title: {
+              display: true,
+              text: "Percentage"
+            }
+          },
+          x: {
+            ticks: {
+              callback: function(value) {
+                return this.getLabelForValue(value);
+              }
+            },
+            title: {
+              display: true,
+              text: "Date"
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+
+  function filterTrends() {
+    updateTrendChart();
+  }
+
+  document.getElementById("startDate").addEventListener("change", updateTrendChart);
+  document.getElementById("endDate").addEventListener("change", updateTrendChart);
+  document.getElementById("trendVariable").value = "Care Quality";
+  renderChoiceCheckboxes("Care Quality");
+  updateTrendChart();
+</script>
+
 
 
 
