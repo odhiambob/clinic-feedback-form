@@ -469,7 +469,7 @@
 
 
 
-<!-- ✅ Part 5: Clean grouped bars with tight layout, dates, and filters -->
+<!-- ✅ Part 5 of dashboard.html: Trends with grouped bars, clean dates, and choice filtering -->
 <script>
   const trendVariables = {
     careQuality: ["Excellent", "Good", "Average", "Poor"],
@@ -579,9 +579,8 @@
         data: countsPerDate.map(day => day[index]),
         backgroundColor: color,
         borderWidth: 1,
-        barThickness: 20,             // ✅ fixed thin bars
-        maxBarThickness: 20,
-        minBarLength: 2
+        barPercentage: 1.0,      // ✅ Make bars tight within group
+        categoryPercentage: 1.0  // ✅ Ensure bars are grouped with no space
       });
     });
 
@@ -611,7 +610,7 @@
           },
           datalabels: {
             anchor: "end",
-            align: "start",
+            align: "end",
             color: "#000",
             font: {
               weight: "bold",
@@ -625,7 +624,7 @@
             beginAtZero: true,
             max: 100,
             ticks: {
-              callback: (v) => v + "%",
+              callback: (v) => v // ✅ remove % sign on vertical scale
             },
             title: {
               display: true,
@@ -634,17 +633,10 @@
           },
           x: {
             stacked: false,
-            title: {
-              display: true,
-              text: "Date"
-            },
             ticks: {
-              callback: function(value) {
-                return this.getLabelForValue(value); // ✅ show date only
+              callback: function(value, index) {
+                return this.getLabelForValue(value); // ✅ date shown below each group
               }
-            },
-            grid: {
-              drawOnChartArea: false
             }
           }
         }
@@ -659,6 +651,7 @@
   renderChoiceCheckboxes("careQuality");
   updateTrendChart();
 </script>
+
 
 
 
