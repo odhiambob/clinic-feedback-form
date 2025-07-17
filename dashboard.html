@@ -469,7 +469,7 @@
 
 
 
-<!-- ✅ Part 5: Trends Chart with Grouped Bars + Trend Lines + Export Buttons -->
+<!-- ✅ Part 5: Trends Chart with Grouped Bars (No Lines) -->
 <script>
   const trendVariables = ["careQuality", "waitTime", "staffFriendliness", "recommendClinic"];
   const trendColors = {
@@ -540,26 +540,11 @@
 
     labels.forEach((label, i) => {
       const color = trendColors[variable][i];
-
       datasets.push({
-        type: 'bar',
         label: label,
         data: countsPerDate.map(day => day[i]),
         backgroundColor: color,
-        stack: 'Grouped'
-      });
-
-      datasets.push({
-        type: 'line',
-        label: label + ' Trend',
-        data: countsPerDate.map(day => day[i]),
-        borderColor: color,
-        backgroundColor: color,
-        fill: false,
-        borderWidth: 2,
-        tension: 0.3,
-        pointRadius: 0,
-        pointHoverRadius: 5
+        borderWidth: 1
       });
     });
 
@@ -586,32 +571,47 @@
                 return `${ctx.dataset.label}: ${ctx.raw}%`;
               }
             }
+          },
+          datalabels: {
+            anchor: 'end',
+            align: 'start',
+            color: '#000',
+            font: {
+              weight: 'bold',
+              size: 12
+            },
+            formatter: (value) => `${value}%`
           }
         },
         scales: {
-          yAxes: [{
+          y: {
+            beginAtZero: true,
+            max: 100,
             ticks: {
-              beginAtZero: true,
               callback: function(value) { return value + "%"; }
             },
-            scaleLabel: {
+            title: {
               display: true,
-              labelString: "Percentage"
+              text: "Percentage"
             }
-          }],
-          xAxes: [{
+          },
+          x: {
             stacked: false,
-            barPercentage: 0.5,
-            categoryPercentage: 0.5
-          }]
+            title: {
+              display: true,
+              text: "Date"
+            }
+          }
         }
-      }
+      },
+      plugins: [ChartDataLabels]
     });
   }
 
   document.getElementById("trendVariable").addEventListener("change", updateTrendChart);
   document.getElementById("startDate").addEventListener("change", updateTrendChart);
   document.getElementById("endDate").addEventListener("change", updateTrendChart);
+  document.getElementById("trendVariable").value = "careQuality";
 
   function filterTrends() {
     updateTrendChart();
@@ -619,7 +619,6 @@
 
   updateTrendChart();
 </script>
-
 
 
 <!-- ✅ Part 6 of dashboard.html: Export Charts to PNG and PDF -->
