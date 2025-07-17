@@ -4,58 +4,110 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
 
 
-<!-- ✅ Part 1: Chart Styling and Strikethrough Fix -->
-<style>
-  body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', sans-serif;
-  }
-
-  .card {
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-  }
-
-  .kpi-box {
-    font-size: 1.2rem;
-    padding: 1rem;
-    text-align: center;
-    color: white;
-    border-radius: 10px;
-  }
-
-  .kpi-total { background-color: #17a2b8; }
-  .kpi-recommend { background-color: #28a745; }
-  .kpi-excellent { background-color: #ffc107; }
-
-  canvas {
-    max-height: 220px;
-  }
-
-  .comment-card {
-    background: white;
-    border: 1px solid #ddd;
-    border-left: 4px solid #007bff;
-    padding: 10px;
-    margin: 5px 0;
-    font-size: 14px;
-    border-radius: 5px;
-  }
-
-  .chart-legend text {
-    text-decoration: none !important;
-  }
-
-  .chartjs-legend li span {
-    text-decoration: none !important;
-  }
-
-  .chartjs-legend li,
-  .chart-legend li {
-    text-decoration: none !important;
-  }
-</style>
+<!-- ✅ Part 1 of dashboard.html: Full <head> including styles and Firebase SDKs -->
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Chambua Clinic Feedback Dashboard</title>
+  
+    <!-- Bootstrap + jQuery -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+    <!-- ✅ Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  
+    <!-- ✅ Custom Styles (including fix for strikethrough) -->
+    <style>
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #f5f7fa;
+      }
+  
+      .sidebar {
+        width: 220px;
+        height: 100vh;
+        background-color: #343a40;
+        position: fixed;
+        top: 0;
+        left: 0;
+        color: white;
+        padding-top: 20px;
+      }
+  
+      .sidebar a {
+        display: block;
+        padding: 12px 20px;
+        color: white;
+        text-decoration: none;
+      }
+  
+      .sidebar a.active,
+      .sidebar a:hover {
+        background-color: #495057;
+      }
+  
+      .main {
+        margin-left: 220px;
+        padding: 30px 20px;
+        max-width: 1140px;
+      }
+  
+      .kpi-box {
+        border-radius: 5px;
+        padding: 15px;
+        color: white;
+        text-align: center;
+      }
+  
+      .kpi-blue { background-color: #17a2b8; }
+      .kpi-green { background-color: #28a745; }
+      .kpi-yellow { background-color: #ffc107; color: #333; }
+  
+      .card-header { font-weight: bold; }
+  
+      .comment-card {
+        padding: 10px;
+        border-left: 5px solid #17a2b8;
+        margin-bottom: 10px;
+        background-color: white;
+      }
+  
+      .dashboard-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+  
+      .tab-pane {
+        display: none;
+      }
+  
+      .tab-pane.active {
+        display: block;
+      }
+  
+      .bar-label {
+        font-size: 14px;
+        font-weight: bold;
+        fill: white;
+        text-anchor: middle;
+      }
+  
+      /* ✅ Fix for strikethrough on chart legends */
+      .chartjs-legend li span,
+      .chartjs-legend li,
+      .chart-legend li,
+      .chart-legend text {
+        text-decoration: none !important;
+      }
+    </style>
+  </head>
+  
 
 
 
