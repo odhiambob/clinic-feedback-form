@@ -469,8 +469,15 @@
 
 
 
-<!-- ✅ Part 5 of dashboard.html: Trends dropdown + filters + grouped bars without % signs -->
+<!-- ✅ Part 5: Fixed variable label mapping and working dropdown + checkbox filters -->
 <script>
+  const trendLabels = {
+    "Care Quality": "careQuality",
+    "Wait Time": "waitTime",
+    "Staff Friendliness": "staffFriendliness",
+    "Would Recommend?": "recommendClinic"
+  };
+
   const trendVariables = {
     "Care Quality": ["Excellent", "Good", "Average", "Poor"],
     "Wait Time": ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
@@ -488,7 +495,6 @@
   const trendSelect = document.getElementById("trendVariable");
   const filterWrapper = document.getElementById("variableFilter");
 
-  // ✅ Populate dropdown with variable names
   Object.keys(trendVariables).forEach(key => {
     const opt = document.createElement("option");
     opt.value = key;
@@ -530,7 +536,8 @@
   }
 
   async function updateTrendChart() {
-    const variable = trendSelect.value;
+    const displayVariable = trendSelect.value;
+    const firestoreField = trendLabels[displayVariable];
     const startDate = new Date(document.getElementById("startDate").value);
     const endDate = new Date(document.getElementById("endDate").value);
     if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) return;
@@ -561,20 +568,20 @@
     for (const date of allDates) {
       const raw = await fetchDataForDate(date);
       const total = raw.length || 1;
-      const labelSet = trendVariables[variable];
+      const labelSet = trendVariables[displayVariable];
       const dailyCounts = labelSet.map(label =>
-        Math.round((raw.filter(d => d[variable] === label).length / total) * 100)
+        Math.round((raw.filter(d => d[firestoreField] === label).length / total) * 100)
       );
       countsPerDate.push(dailyCounts);
     }
 
     const datasets = [];
-    const allLabels = trendVariables[variable];
+    const allLabels = trendVariables[displayVariable];
     const activeLabels = selectedChoices.length > 0 ? selectedChoices : allLabels;
 
     activeLabels.forEach(label => {
       const index = allLabels.indexOf(label);
-      const color = trendColors[variable][index];
+      const color = trendColors[displayVariable][index];
       datasets.push({
         label: label,
         data: countsPerDate.map(day => day[index]),
@@ -647,11 +654,8 @@
     });
   }
 
-  // ✅ Event listeners
   document.getElementById("startDate").addEventListener("change", updateTrendChart);
   document.getElementById("endDate").addEventListener("change", updateTrendChart);
-
-  // ✅ Initial Load
   document.getElementById("trendVariable").value = "Care Quality";
   renderChoiceCheckboxes("Care Quality");
   updateTrendChart();
