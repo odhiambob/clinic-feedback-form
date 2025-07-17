@@ -469,32 +469,64 @@
 
 
 
-<!-- ✅ Part 5: Clean Grouped Bar Chart with Professional Spacing -->
+<!-- ✅ Part 5: Trends with grouped bars, clean dates, and choice filtering -->
 <script>
-  const trendVariables = ["careQuality", "waitTime", "staffFriendliness", "recommendClinic"];
-  const trendColors = {
-    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
-    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
-    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
-    recommendClinic: ["#28a745", "#dc3545"]
-  };
-  const trendLabels = {
+  const trendVariables = {
     careQuality: ["Excellent", "Good", "Average", "Poor"],
     waitTime: ["Less than 15 minutes", "15–30 minutes", "More than 30 minutes"],
     staffFriendliness: ["Excellent", "Good", "Average", "Poor"],
     recommendClinic: ["Yes", "No"]
   };
 
+  const trendColors = {
+    careQuality: ["#28a745", "#007bff", "#ffc107", "#dc3545"],
+    waitTime: ["#17a2b8", "#ffc107", "#dc3545"],
+    staffFriendliness: ["#6f42c1", "#007bff", "#ffc107", "#dc3545"],
+    recommendClinic: ["#28a745", "#dc3545"]
+  };
+
   const trendSelect = document.getElementById("trendVariable");
-  trendSelect.innerHTML = "";
-  trendVariables.forEach(v => {
+  const filterWrapper = document.getElementById("variableFilter");
+
+  Object.keys(trendVariables).forEach(key => {
     const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v.replace(/([A-Z])/g, ' $1').trim();
+    opt.value = key;
+    opt.textContent = key.replace(/([A-Z])/g, " $1").trim();
     trendSelect.appendChild(opt);
   });
 
   let trendBarChart = null;
+  let selectedChoices = [];
+
+  trendSelect.addEventListener("change", () => {
+    const variable = trendSelect.value;
+    selectedChoices = [...trendVariables[variable]];
+    renderChoiceCheckboxes(variable);
+    updateTrendChart();
+  });
+
+  function renderChoiceCheckboxes(variable) {
+    const choices = trendVariables[variable];
+    filterWrapper.innerHTML = "";
+    choices.forEach(choice => {
+      const div = document.createElement("div");
+      div.classList.add("form-check", "form-check-inline");
+      div.innerHTML = `
+        <input class="form-check-input" type="checkbox" checked value="${choice}" id="check-${choice}">
+        <label class="form-check-label" for="check-${choice}">${choice}</label>
+      `;
+      filterWrapper.appendChild(div);
+    });
+
+    document.querySelectorAll(".form-check-input").forEach(input => {
+      input.addEventListener("change", () => {
+        selectedChoices = Array.from(document.querySelectorAll(".form-check-input"))
+          .filter(cb => cb.checked)
+          .map(cb => cb.value);
+        updateTrendChart();
+      });
+    });
+  }
 
   async function updateTrendChart() {
     const variable = trendSelect.value;
@@ -510,7 +542,7 @@
     }
 
     const formatDate = (d) =>
-      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}`;
+      `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getFullYear()).slice(-2)}`;
 
     const fetchDataForDate = async (date) => {
       const start = new Date(date);
@@ -528,21 +560,23 @@
     for (const date of allDates) {
       const raw = await fetchDataForDate(date);
       const total = raw.length || 1;
-      const labelSet = trendLabels[variable];
+      const labelSet = trendVariables[variable];
       const dailyCounts = labelSet.map(label =>
         Math.round((raw.filter(d => d[variable] === label).length / total) * 100)
       );
       countsPerDate.push(dailyCounts);
     }
 
-    const labels = trendLabels[variable];
     const datasets = [];
+    const allLabels = trendVariables[variable];
+    const activeLabels = selectedChoices.length > 0 ? selectedChoices : allLabels;
 
-    labels.forEach((label, i) => {
-      const color = trendColors[variable][i];
+    activeLabels.forEach(label => {
+      const index = allLabels.indexOf(label);
+      const color = trendColors[variable][index];
       datasets.push({
         label: label,
-        data: countsPerDate.map(day => day[i]),
+        data: countsPerDate.map(day => day[index]),
         backgroundColor: color,
         borderWidth: 1,
         barPercentage: 0.6,
@@ -566,7 +600,7 @@
         plugins: {
           legend: { position: "top" },
           tooltip: {
-            mode: 'index',
+            mode: "index",
             intersect: false,
             callbacks: {
               label: function(ctx) {
@@ -575,11 +609,11 @@
             }
           },
           datalabels: {
-            anchor: 'end',
-            align: 'start',
-            color: '#000',
+            anchor: "end",
+            align: "start",
+            color: "#000",
             font: {
-              weight: 'bold',
+              weight: "bold",
               size: 12
             },
             formatter: (value) => `${value}%`
@@ -590,7 +624,7 @@
             beginAtZero: true,
             max: 100,
             ticks: {
-              callback: function(value) { return value + "%"; }
+              callback: (v) => v + "%",
             },
             title: {
               display: true,
@@ -599,15 +633,14 @@
           },
           x: {
             stacked: false,
-            ticks: {
-              display: true,
-              callback: function(value, index, values) {
-                return this.getLabelForValue(value);
-              }
-            },
             title: {
               display: true,
               text: "Date"
+            },
+            ticks: {
+              callback: function(value) {
+                return this.getLabelForValue(value); // ✅ Show clean date
+              }
             }
           }
         }
@@ -616,17 +649,13 @@
     });
   }
 
-  document.getElementById("trendVariable").addEventListener("change", updateTrendChart);
   document.getElementById("startDate").addEventListener("change", updateTrendChart);
   document.getElementById("endDate").addEventListener("change", updateTrendChart);
   document.getElementById("trendVariable").value = "careQuality";
-
-  function filterTrends() {
-    updateTrendChart();
-  }
-
+  renderChoiceCheckboxes("careQuality");
   updateTrendChart();
 </script>
+
 
 
 <!-- ✅ Part 6 of dashboard.html: Export Charts to PNG and PDF -->
