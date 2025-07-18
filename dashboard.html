@@ -486,13 +486,11 @@
     <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
   </div>
 
-  <!-- Dropdown for variable selection -->
   <div class="form-group mb-3">
     <label for="trendVariable"><strong>Select Variable:</strong></label>
     <select id="trendVariable" class="form-control w-auto d-inline-block mx-2"></select>
   </div>
 
-  <!-- Checkboxes for filter choices -->
   <div class="form-group mb-3">
     <label><strong>Filter Choices:</strong></label>
     <div id="variableFilter" class="mt-1"></div>
@@ -695,15 +693,24 @@
       trendSelect.appendChild(opt);
     });
 
+    // Default state
     trendSelect.value = "Care Quality";
     selectedChoices = [...trendVariables["Care Quality"]];
     renderChoiceCheckboxes("Care Quality");
     updateTrendChart();
 
+    // Event listeners
     document.getElementById("startDate").addEventListener("change", updateTrendChart);
     document.getElementById("endDate").addEventListener("change", updateTrendChart);
+    trendSelect.addEventListener("change", () => {
+      const variable = trendSelect.value;
+      selectedChoices = [...trendVariables[variable]];
+      renderChoiceCheckboxes(variable);
+      updateTrendChart();
+    });
   });
 </script>
+
 
 
 
