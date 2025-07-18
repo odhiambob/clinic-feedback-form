@@ -472,7 +472,7 @@
   });
 </script>
 
-<!-- ✅ Part 5: Trends tab using smooth line chart with dynamic ticks -->
+<!-- ✅ Part 5: Trends tab using clean line chart (no node labels) -->
 <div id="trendTab" class="tab-pane">
   <h4>Feedback Trends</h4>
   <p>Select a date range and variable to analyze trends over time.</p>
@@ -617,8 +617,8 @@ window.addEventListener("DOMContentLoaded", () => {
         backgroundColor: color,
         fill: false,
         tension: 0.4,
-        pointRadius: 0, // ⛔ removes dots
-        pointHoverRadius: 6,
+        pointRadius: 0,
+        pointHoverRadius: 5,
         borderWidth: 2
       });
     });
