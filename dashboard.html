@@ -473,7 +473,7 @@
 </script>
 
 
-<!-- ✅ Part 5 of dashboard.html: Trends tab with dynamic multi-line chart -->
+<!-- ✅ Part 5: Trends tab using smooth line chart with dynamic ticks -->
 <div id="trendTab" class="tab-pane">
   <h4>Feedback Trends</h4>
   <p>Select a date range and variable to analyze trends over time.</p>
@@ -617,15 +617,14 @@ window.addEventListener("DOMContentLoaded", () => {
         borderColor: color,
         backgroundColor: color,
         fill: false,
-        tension: 0.3,
-        pointRadius: 4,
+        tension: 0.4,
+        pointRadius: 0, // ⛔ removes dots
         pointHoverRadius: 6,
         borderWidth: 2
       });
     });
 
-    // Adjust chart height dynamically
-    const dynamicHeight = Math.max(300, allDates.length * 30);
+    const dynamicHeight = Math.max(300, allDates.length * 25);
     canvasContainer.style.height = `${dynamicHeight}px`;
 
     const ctx = document.getElementById("trendChart")?.getContext("2d");
@@ -641,6 +640,10 @@ window.addEventListener("DOMContentLoaded", () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'nearest',
+          intersect: false
+        },
         plugins: {
           legend: { position: "top" },
           tooltip: {
@@ -655,21 +658,22 @@ window.addEventListener("DOMContentLoaded", () => {
           y: {
             beginAtZero: true,
             max: 100,
-            ticks: {
-              callback: (v) => v + "%"
-            },
             title: {
               display: true,
               text: "Percentage"
+            },
+            ticks: {
+              callback: (v) => `${v}%`
             }
           },
           x: {
-            ticks: {
-              font: { size: 11 }
-            },
             title: {
               display: true,
               text: "Date"
+            },
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: (allDates.length > 30) ? Math.ceil(allDates.length / 7) : allDates.length
             }
           }
         }
@@ -681,13 +685,11 @@ window.addEventListener("DOMContentLoaded", () => {
     updateTrendChart();
   }
 
-  // Initialize
   trendSelect.value = "Care Quality";
   selectedChoices = [...trendVariables["Care Quality"]];
   renderChoiceCheckboxes("Care Quality");
   updateTrendChart();
 
-  // Event bindings
   document.getElementById("startDate").addEventListener("change", updateTrendChart);
   document.getElementById("endDate").addEventListener("change", updateTrendChart);
   trendSelect.addEventListener("change", () => {
@@ -698,6 +700,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+
 
 
 
