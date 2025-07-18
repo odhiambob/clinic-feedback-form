@@ -714,10 +714,23 @@ window.addEventListener("DOMContentLoaded", () => {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
+  // ✅ Export with white background
   function exportChartAsPNG(canvasId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
-    const image = canvas.toDataURL("image/png", 1.0);
+
+    // Create temp canvas
+    const tmpCanvas = document.createElement("canvas");
+    tmpCanvas.width = canvas.width;
+    tmpCanvas.height = canvas.height;
+    const ctx = tmpCanvas.getContext("2d");
+
+    // White background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    const image = tmpCanvas.toDataURL("image/png", 1.0);
     const link = document.createElement("a");
     link.href = image;
     link.download = canvasId + ".png";
@@ -727,7 +740,17 @@ window.addEventListener("DOMContentLoaded", () => {
   async function exportChartAsPDF(canvasId, title = "Chart Export") {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
-    const image = canvas.toDataURL("image/png", 1.0);
+
+    // Use white background for PDF export too
+    const tmpCanvas = document.createElement("canvas");
+    tmpCanvas.width = canvas.width;
+    tmpCanvas.height = canvas.height;
+    const ctx = tmpCanvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    const image = tmpCanvas.toDataURL("image/png", 1.0);
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
@@ -736,6 +759,7 @@ window.addEventListener("DOMContentLoaded", () => {
     pdf.save(canvasId + ".pdf");
   }
 </script>
+
 
 
 
@@ -748,8 +772,8 @@ window.addEventListener("DOMContentLoaded", () => {
       { id: "careChart", title: "Care Quality" },
       { id: "waitTimeChart", title: "Wait Time" },
       { id: "friendlinessChart", title: "Friendliness" },
-      { id: "recommendChart", title: "Would Recommend" },
-      { id: "trendChart", title: "Trends Over Time" }
+      { id: "recommendChart", title: "Would Recommend" }
+      // ✅ Trend chart is intentionally excluded
     ];
 
     for (let i = 0; i < charts.length; i++) {
@@ -757,7 +781,15 @@ window.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById(id);
       if (!canvas) continue;
 
-      const imgData = canvas.toDataURL("image/png", 1.0);
+      const tmpCanvas = document.createElement("canvas");
+      tmpCanvas.width = canvas.width;
+      tmpCanvas.height = canvas.height;
+      const ctx = tmpCanvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+      const imgData = tmpCanvas.toDataURL("image/png", 1.0);
+
       if (i > 0) pdf.addPage();
       pdf.text(title, 15, 10);
       pdf.addImage(imgData, "PNG", 15, 20, 180, 100);
@@ -771,14 +803,23 @@ window.addEventListener("DOMContentLoaded", () => {
       { id: "careChart", title: "Care_Quality" },
       { id: "waitTimeChart", title: "Wait_Time" },
       { id: "friendlinessChart", title: "Friendliness" },
-      { id: "recommendChart", title: "Would_Recommend" },
-      { id: "trendChart", title: "Trends" }
+      { id: "recommendChart", title: "Would_Recommend" }
+      // ✅ Trend chart is intentionally excluded
     ];
 
     charts.forEach(({ id, title }) => {
       const canvas = document.getElementById(id);
       if (!canvas) return;
-      const image = canvas.toDataURL("image/png", 1.0);
+
+      const tmpCanvas = document.createElement("canvas");
+      tmpCanvas.width = canvas.width;
+      tmpCanvas.height = canvas.height;
+      const ctx = tmpCanvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+
+      const image = tmpCanvas.toDataURL("image/png", 1.0);
       const link = document.createElement("a");
       link.href = image;
       link.download = `${title}.png`;
@@ -786,3 +827,4 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 </script>
+
