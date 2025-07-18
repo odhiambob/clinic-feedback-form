@@ -448,19 +448,21 @@
       return createChart(ctx, labels, values, colors, isDonut);
     };
 
+    // ✅ Update charts
     careChart = updateChart(careChart, "careChart", labelsMap.careQuality, countBy(data, "careQuality"), colorsMap.careQuality);
     waitTimeChart = updateChart(waitTimeChart, "waitTimeChart", labelsMap.waitTime, countBy(data, "waitTime"), colorsMap.waitTime);
     friendlinessChart = updateChart(friendlinessChart, "friendlinessChart", labelsMap.staffFriendliness, countBy(data, "staffFriendliness"), colorsMap.staffFriendliness);
     recommendChart = updateChart(recommendChart, "recommendChart", labelsMap.recommendClinic, countBy(data, "recommendClinic"), colorsMap.recommendClinic, true);
 
+    // ✅ Clean Comments Section (show only real comments)
     const commentsEl = document.getElementById("commentsSection");
     commentsEl.innerHTML = "";
     data.forEach(d => {
-      const comment = d.additionalComments || "";
-      const rec = d.recommendClinic || "";
-      const care = d.careQuality || "";
+      const comment = d.additionalComments?.trim();
       const date = d.submittedAt?.toDate?.().toLocaleString?.() || "";
-      commentsEl.innerHTML += `<div class="comment-card">${comment} • ${care} • ${rec} • ${date}</div>`;
+      if (comment) {
+        commentsEl.innerHTML += `<div class="comment-card">${comment} • ${date}</div>`;
+      }
     });
   }
 
@@ -471,6 +473,7 @@
     updateDashboard(chosen);
   });
 </script>
+
 
 <!-- ✅ Part 5: Trends tab with clean line chart (no node numbers, tooltip only) -->
 <div id="trendTab" class="tab-pane">
