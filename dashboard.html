@@ -699,12 +699,25 @@
     updateTrendChart();
   }
 
-  document.getElementById("startDate").addEventListener("change", updateTrendChart);
-  document.getElementById("endDate").addEventListener("change", updateTrendChart);
-  document.getElementById("trendVariable").value = "Care Quality";
+  window.addEventListener("DOMContentLoaded", () => {
+  // Fill dropdown
+  Object.keys(trendVariables).forEach(key => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = key;
+    trendSelect.appendChild(opt);
+  });
+
+  // Set initial values
+  trendSelect.value = "Care Quality";
   renderChoiceCheckboxes("Care Quality");
   updateTrendChart();
-</script>
+
+  // Event listeners
+  document.getElementById("startDate").addEventListener("change", updateTrendChart);
+  document.getElementById("endDate").addEventListener("change", updateTrendChart);
+});
+
 
 
 
