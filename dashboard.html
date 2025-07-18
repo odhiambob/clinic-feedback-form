@@ -472,7 +472,7 @@
   });
 </script>
 
-<!-- ✅ Part 5: Trends tab using clean line chart (no node labels) -->
+<!-- ✅ Part 5: Trends tab with clean line chart (no node numbers, tooltip only) -->
 <div id="trendTab" class="tab-pane">
   <h4>Feedback Trends</h4>
   <p>Select a date range and variable to analyze trends over time.</p>
@@ -617,7 +617,7 @@ window.addEventListener("DOMContentLoaded", () => {
         backgroundColor: color,
         fill: false,
         tension: 0.4,
-        pointRadius: 0,
+        pointRadius: 0, // No visible dots
         pointHoverRadius: 5,
         borderWidth: 2
       });
@@ -644,6 +644,9 @@ window.addEventListener("DOMContentLoaded", () => {
           intersect: false
         },
         plugins: {
+          datalabels: {
+            display: false // ✅ turns off global ChartDataLabels for this chart
+          },
           legend: { position: "top" },
           tooltip: {
             callbacks: {
@@ -699,7 +702,6 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
-
 
 
 
