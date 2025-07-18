@@ -473,7 +473,7 @@
 </script>
 
 
-<!-- ✅ Part 5 of dashboard.html: Trends tab with grouped bars, dynamic size, and aligned labels -->
+<!-- ✅ Part 5 of dashboard.html: Trends tab with dynamic multi-line chart -->
 <div id="trendTab" class="tab-pane">
   <h4>Feedback Trends</h4>
   <p>Select a date range and variable to analyze trends over time.</p>
@@ -496,7 +496,7 @@
     <div id="variableFilter" class="mt-1"></div>
   </div>
 
-  <div class="mt-3" id="trendChartContainer" style="height: 280px;">
+  <div class="mt-3" id="trendChartContainer" style="height: 350px;">
     <canvas id="trendChart" height="100"></canvas>
     <div class="mt-2 text-center">
       <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPNG('trendChart')">Export PNG</button>
@@ -531,10 +531,9 @@ window.addEventListener("DOMContentLoaded", () => {
   const trendSelect = document.getElementById("trendVariable");
   const filterWrapper = document.getElementById("variableFilter");
   const canvasContainer = document.getElementById("trendChartContainer");
-  let trendBarChart = null;
+  let trendLineChart = null;
   let selectedChoices = [];
 
-  // Fill dropdown
   Object.keys(trendVariables).forEach(key => {
     const opt = document.createElement("option");
     opt.value = key;
@@ -615,23 +614,26 @@ window.addEventListener("DOMContentLoaded", () => {
       datasets.push({
         label: label,
         data: countsPerDate.map(day => day[index]),
+        borderColor: color,
         backgroundColor: color,
-        borderWidth: 1,
-        barPercentage: 1.0,
-        categoryPercentage: 1.0
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 2
       });
     });
 
-    // 📏 Make chart container height dynamic
-    const dynamicHeight = Math.max(300, allDates.length * 60);
+    // Adjust chart height dynamically
+    const dynamicHeight = Math.max(300, allDates.length * 30);
     canvasContainer.style.height = `${dynamicHeight}px`;
 
     const ctx = document.getElementById("trendChart")?.getContext("2d");
     if (!ctx) return;
-    if (trendBarChart && typeof trendBarChart.destroy === "function") trendBarChart.destroy();
+    if (trendLineChart && typeof trendLineChart.destroy === "function") trendLineChart.destroy();
 
-    trendBarChart = new Chart(ctx, {
-      type: "bar",
+    trendLineChart = new Chart(ctx, {
+      type: "line",
       data: {
         labels: allDates.map(formatDate),
         datasets: datasets
@@ -647,13 +649,6 @@ window.addEventListener("DOMContentLoaded", () => {
                 return `${ctx.dataset.label}: ${ctx.raw}%`;
               }
             }
-          },
-          datalabels: {
-            anchor: "end",
-            align: "top",
-            color: "#000",
-            font: { weight: "bold", size: 11 },
-            formatter: value => (value > 0 ? `${value}%` : "")
           }
         },
         scales: {
@@ -669,7 +664,6 @@ window.addEventListener("DOMContentLoaded", () => {
             }
           },
           x: {
-            stacked: false,
             ticks: {
               font: { size: 11 }
             },
@@ -679,8 +673,7 @@ window.addEventListener("DOMContentLoaded", () => {
             }
           }
         }
-      },
-      plugins: [ChartDataLabels]
+      }
     });
   }
 
@@ -688,7 +681,7 @@ window.addEventListener("DOMContentLoaded", () => {
     updateTrendChart();
   }
 
-  // Initial setup
+  // Initialize
   trendSelect.value = "Care Quality";
   selectedChoices = [...trendVariables["Care Quality"]];
   renderChoiceCheckboxes("Care Quality");
@@ -705,11 +698,6 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
-
-
-
-
-
 
 
 
