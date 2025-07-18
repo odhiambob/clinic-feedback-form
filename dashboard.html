@@ -240,13 +240,18 @@
         <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
       </div>
 
-      <!-- Variable Dropdown -->
-      <div class="form-group">
-        <label><strong>Select Variable:</strong></label>
-        <div id="variableFilter">
-          <select id="trendVariable" class="form-control w-auto mt-1"></select>
-        </div>
-      </div>
+      <!-- Variable Dropdown (fixed) -->
+<div class="form-group mb-3">
+  <label for="trendVariable"><strong>Select Variable:</strong></label>
+  <select id="trendVariable" class="form-control w-auto d-inline-block mx-2"></select>
+</div>
+
+<!-- Choice Checkboxes (stay below dropdown) -->
+<div class="form-group mb-3">
+  <label><strong>Filter Choices:</strong></label>
+  <div id="variableFilter" class="mt-1"></div>
+</div>
+      
 
       <div class="mt-3" style="height: 280px;">
         <canvas id="trendChart" height="100"></canvas>
