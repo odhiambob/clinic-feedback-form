@@ -119,149 +119,157 @@
 <!-- ✅ Part 2 of dashboard.html: Body, Sidebar, Tabs, 2x2 Pie Layout + Export Buttons -->
 <body>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h5 class="text-center mb-4">📊 Chambua Dashboard</h5>
-    <a href="#" class="active" onclick="showTab('dashboardTab')">Dashboard</a>
-    <a href="#" onclick="showTab('trendTab')">Trends</a>
-    <a href="#" onclick="logout()">Logout</a>
-  </div>
+  <!-- ✅ Step 1: Hide dashboard until user is verified -->
+  <div id="mainApp" style="display: none;">
 
-  <!-- Main Content -->
-  <div class="main">
-    <div class="dashboard-header">
-      <h2>Clinic Feedback Summary</h2>
-      <p>Showing results for: <span id="currentDateLabel"></span></p>
-      <input type="date" id="dateFilter" class="form-control w-auto mx-auto"/>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h5 class="text-center mb-4">📊 Chambua Dashboard</h5>
+      <a href="#" class="active" onclick="showTab('dashboardTab')">Dashboard</a>
+      <a href="#" onclick="showTab('trendTab')">Trends</a>
+      <a href="#" onclick="logout()">Logout</a>
     </div>
 
-    <!-- Tabs Start -->
-    <div id="dashboardTab" class="tab-pane active">
-
-      <!-- KPI Cards -->
-      <div class="row">
-        <div class="col-md-4">
-          <div class="kpi-box kpi-blue">
-            <h2 id="totalSubmissions">0</h2>
-            <p>Total Submissions</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="kpi-box kpi-green">
-            <h2 id="wouldRecommend">0</h2>
-            <p>Would Recommend</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="kpi-box kpi-yellow">
-            <h2 id="excellentCare">0</h2>
-            <p>Excellent Care</p>
-          </div>
-        </div>
+    <!-- Main Content -->
+    <div class="main">
+      <div class="dashboard-header">
+        <h2>Clinic Feedback Summary</h2>
+        <p>Showing results for: <span id="currentDateLabel"></span></p>
+        <input type="date" id="dateFilter" class="form-control w-auto mx-auto"/>
       </div>
 
-      <!-- Feedback Charts: 2 per row -->
-      <div class="row mt-4">
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-header bg-primary text-white">Care Quality</div>
-            <div class="card-body text-center">
-              <canvas id="careChart" height="150"></canvas>
-              <div class="mt-2">
-                <button onclick="exportChartAsPNG('careChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
-                <button onclick="exportChartAsPDF('careChart', 'Care Quality')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+      <!-- Tabs Start -->
+      <div id="dashboardTab" class="tab-pane active">
+
+        <!-- KPI Cards -->
+        <div class="row">
+          <div class="col-md-4">
+            <div class="kpi-box kpi-blue">
+              <h2 id="totalSubmissions">0</h2>
+              <p>Total Submissions</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="kpi-box kpi-green">
+              <h2 id="wouldRecommend">0</h2>
+              <p>Would Recommend</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="kpi-box kpi-yellow">
+              <h2 id="excellentCare">0</h2>
+              <p>Excellent Care</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback Charts: 2 per row -->
+        <div class="row mt-4">
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-primary text-white">Care Quality</div>
+              <div class="card-body text-center">
+                <canvas id="careChart" height="150"></canvas>
+                <div class="mt-2">
+                  <button onclick="exportChartAsPNG('careChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                  <button onclick="exportChartAsPDF('careChart', 'Care Quality')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-info text-white">Wait Time</div>
+              <div class="card-body text-center">
+                <canvas id="waitTimeChart" height="150"></canvas>
+                <div class="mt-2">
+                  <button onclick="exportChartAsPNG('waitTimeChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                  <button onclick="exportChartAsPDF('waitTimeChart', 'Wait Time')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
+              <div class="card-body text-center">
+                <canvas id="friendlinessChart" height="150"></canvas>
+                <div class="mt-2">
+                  <button onclick="exportChartAsPNG('friendlinessChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                  <button onclick="exportChartAsPDF('friendlinessChart', 'Staff Friendliness')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-success text-white">Would Recommend?</div>
+              <div class="card-body text-center">
+                <canvas id="recommendChart" height="150"></canvas>
+                <div class="mt-2">
+                  <button onclick="exportChartAsPNG('recommendChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
+                  <button onclick="exportChartAsPDF('recommendChart', 'Would Recommend')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-header bg-info text-white">Wait Time</div>
-            <div class="card-body text-center">
-              <canvas id="waitTimeChart" height="150"></canvas>
-              <div class="mt-2">
-                <button onclick="exportChartAsPNG('waitTimeChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
-                <button onclick="exportChartAsPDF('waitTimeChart', 'Wait Time')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
-              </div>
-            </div>
+
+        <!-- Client Comments -->
+        <div class="card mt-4">
+          <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
+          <div class="card-body" id="commentsSection">
+            <!-- Comments will be dynamically added here -->
           </div>
         </div>
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-header text-white" style="background-color: #6f42c1;">Staff Friendliness</div>
-            <div class="card-body text-center">
-              <canvas id="friendlinessChart" height="150"></canvas>
-              <div class="mt-2">
-                <button onclick="exportChartAsPNG('friendlinessChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
-                <button onclick="exportChartAsPDF('friendlinessChart', 'Staff Friendliness')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
-              </div>
-            </div>
+
+        <!-- Export All Charts -->
+        <div class="text-center mt-4">
+          <button class="btn btn-outline-primary mx-1" onclick="exportAllChartsAsPDF()">📄 Export All as PDF</button>
+          <button class="btn btn-outline-success mx-1" onclick="exportAllChartsAsPNGs()">🖼️ Export All as PNGs</button>
+        </div>
+      </div> <!-- End Dashboard Tab -->
+
+      <!-- Trends Tab -->
+      <div id="trendTab" class="tab-pane">
+        <h4>Feedback Trends</h4>
+        <p>Select a date range and variable to analyze trends over time.</p>
+
+        <div class="form-inline mb-3">
+          <label for="startDate">Start: </label>
+          <input type="date" id="startDate" class="form-control mx-2"/>
+          <label for="endDate">End: </label>
+          <input type="date" id="endDate" class="form-control mx-2"/>
+          <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
+        </div>
+
+        <!-- Variable Dropdown -->
+        <div class="form-group mb-3">
+          <label for="trendVariable"><strong>Select Variable:</strong></label>
+          <select id="trendVariable" class="form-control w-auto d-inline-block mx-2"></select>
+        </div>
+
+        <!-- Choice Checkboxes -->
+        <div class="form-group mb-3">
+          <label><strong>Filter Choices:</strong></label>
+          <div id="variableFilter" class="mt-1"></div>
+        </div>
+
+        <div class="mt-3" style="height: 280px;">
+          <canvas id="trendChart" height="100"></canvas>
+          <div class="mt-2 text-center">
+            <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPNG('trendChart')">Export PNG</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPDF('trendChart', 'Trends')">Export PDF</button>
           </div>
         </div>
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-header bg-success text-white">Would Recommend?</div>
-            <div class="card-body text-center">
-              <canvas id="recommendChart" height="150"></canvas>
-              <div class="mt-2">
-                <button onclick="exportChartAsPNG('recommendChart')" class="btn btn-sm btn-outline-secondary">Export PNG</button>
-                <button onclick="exportChartAsPDF('recommendChart', 'Would Recommend')" class="btn btn-sm btn-outline-secondary">Export PDF</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </div> <!-- End Trends Tab -->
+    </div> <!-- End Main -->
 
-      <!-- Client Comments -->
-      <div class="card mt-4">
-        <div class="card-header bg-secondary text-white">Client Comments & Suggestions</div>
-        <div class="card-body" id="commentsSection">
-          <!-- Comments will be dynamically added here -->
-        </div>
-      </div>
+  </div> <!-- ✅ End of #mainApp wrapper -->
 
-      <!-- Export All Charts -->
-      <div class="text-center mt-4">
-        <button class="btn btn-outline-primary mx-1" onclick="exportAllChartsAsPDF()">📄 Export All as PDF</button>
-        <button class="btn btn-outline-success mx-1" onclick="exportAllChartsAsPNGs()">🖼️ Export All as PNGs</button>
-      </div>
-    </div> <!-- End Dashboard Tab -->
-
-    <!-- Trends Tab -->
-    <div id="trendTab" class="tab-pane">
-      <h4>Feedback Trends</h4>
-      <p>Select a date range and variable to analyze trends over time.</p>
-
-      <div class="form-inline mb-3">
-        <label for="startDate">Start: </label>
-        <input type="date" id="startDate" class="form-control mx-2"/>
-        <label for="endDate">End: </label>
-        <input type="date" id="endDate" class="form-control mx-2"/>
-        <button class="btn btn-primary" onclick="filterTrends()">Apply Filter</button>
-      </div>
-
-      <!-- Variable Dropdown (fixed) -->
-<div class="form-group mb-3">
-  <label for="trendVariable"><strong>Select Variable:</strong></label>
-  <select id="trendVariable" class="form-control w-auto d-inline-block mx-2"></select>
-</div>
-
-<!-- Choice Checkboxes (stay below dropdown) -->
-<div class="form-group mb-3">
-  <label><strong>Filter Choices:</strong></label>
-  <div id="variableFilter" class="mt-1"></div>
-</div>
-      
-
-      <div class="mt-3" style="height: 280px;">
-        <canvas id="trendChart" height="100"></canvas>
-        <div class="mt-2 text-center">
-          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPNG('trendChart')">Export PNG</button>
-          <button class="btn btn-sm btn-outline-secondary" onclick="exportChartAsPDF('trendChart', 'Trends')">Export PDF</button>
-        </div>
-      </div>
-    </div> <!-- End Trends Tab -->
-  </div> <!-- End Main -->
 </body>
 
 
@@ -281,33 +289,40 @@
   const auth = firebase.auth();
 </script>
 
-<!-- ✅ Part 2 of login: Login Logic for Email/Password and Google with Access Restriction -->
+<!-- ✅ Part 2 of login: Login Logic for Email/Password and Google with Email Whitelist -->
 <script>
-  // ✅ Only this email is allowed
+  // ✅ Only allow this email to access the dashboard
   const allowedEmails = ["katootingo@gmail.com"];
 
-  // ✅ Monitor login state and restrict access
+  // ✅ Firebase auth state change listener
   auth.onAuthStateChanged((user) => {
+    const mainApp = document.getElementById("mainApp");
+
     if (!user) {
-      // Not logged in — redirect to login page
+      // Not logged in — redirect to login
       window.location.href = "login.html";
     } else {
       const email = user.email;
+
       if (!allowedEmails.includes(email)) {
-        // Not allowed — show alert and logout
+        // Not in allowed list — show alert and sign out
         alert("Access Denied. You are not authorized.");
         auth.signOut();
+      } else {
+        // ✅ Authorized user — show the dashboard
+        if (mainApp) mainApp.style.display = "block";
       }
     }
   });
 
-  // ✅ Logout button function
+  // ✅ Logout handler
   function logout() {
     auth.signOut().then(() => {
       window.location.href = "login.html";
     });
   }
 </script>
+
 
 
 <!-- Part 3 of dashboard.html: Tab Control, Date Logic, Chart References -->
