@@ -281,21 +281,34 @@
   const auth = firebase.auth();
 </script>
 
-<!-- Part 2 of login: Login Logic for Email/Password and Google -->
+<!-- ✅ Part 2 of login: Login Logic for Email/Password and Google with Access Restriction -->
 <script>
-  // Redirect to login.html if not logged in
+  // ✅ Only this email is allowed
+  const allowedEmails = ["katootingo@gmail.com"];
+
+  // ✅ Monitor login state and restrict access
   auth.onAuthStateChanged((user) => {
     if (!user) {
+      // Not logged in — redirect to login page
       window.location.href = "login.html";
+    } else {
+      const email = user.email;
+      if (!allowedEmails.includes(email)) {
+        // Not allowed — show alert and logout
+        alert("Access Denied. You are not authorized.");
+        auth.signOut();
+      }
     }
   });
 
+  // ✅ Logout button function
   function logout() {
     auth.signOut().then(() => {
       window.location.href = "login.html";
     });
   }
 </script>
+
 
 <!-- Part 3 of dashboard.html: Tab Control, Date Logic, Chart References -->
 <script>
