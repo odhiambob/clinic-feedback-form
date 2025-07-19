@@ -71,7 +71,14 @@
         <label class="form-label">Provide your phone number or email (optional):</label>
         <input type="text" class="form-control" id="contactInfo" placeholder="0712 345678 or name@example.com" />
       </div>
-      <button type="submit" class="btn btn-primary">Submit Feedback</button>
+      
+      <!-- ✅ Updated submit + powered by row -->
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+        <span style="font-size: 13px; color: #888;">
+          Powered by <a href="https://chambuadata.com" target="_blank">chambuadata.com</a>
+        </span>
+      </div>
     </form>
 
     <div id="thankYouMessage">
@@ -129,9 +136,5 @@
       }
     });
   </script>
-  <!-- ✅ Add footer here -->
-  <footer style="text-align: center; font-size: 14px; margin-top: 40px; color: #888;">
-    Powered by <a href="https://chambuadata.com" target="_blank">chambuadata.com</a>
-  </footer>
 </body>
 </html>
